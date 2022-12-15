@@ -1,0 +1,25 @@
+[package]
+name = "network"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.glib-sys]
+git = 'https://github.com/gtk-rs/gtk-rs-core'
+
+[dependencies.gio]
+git = 'https://github.com/gtk-rs/gtk-rs-core'
+
+[dependencies.gio-sys]
+git = 'https://github.com/gtk-rs/gtk-rs-core'
+
+[dependencies.gobject-sys]
+git = 'https://github.com/gtk-rs/gtk-rs-core'
+
+[dev-dependencies]
+rstest = "0.16.0"
+
+[dependencies]
+glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.17.0" }
+nm = { git = "https://github.com/balena-io-modules/libnm-rs.git", version = "0.4.0" }
+eyre = "0.6.8"
+tokio = { version = "1.23.0", features = ["full"] }
