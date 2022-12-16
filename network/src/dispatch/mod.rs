@@ -14,13 +14,15 @@
 //! - `connections`: provides functions related to nm connections.
 //!     - List all connections.
 //!     - Create a new wired connection.
-pub mod devices;
 pub mod connections;
+pub mod devices;
+pub mod ipconfigs;
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
+use connections::{create_wired_connection, delete_connection, list_connections};
 use devices::list_ether_devices;
-use connections::{list_connections, create_wired_connection, delete_connection};
 use eyre::{Result, WrapErr};
 use glib::MainContext;
+use ipconfigs::{get_ip_config, update_ip_config};
 use nm::Client;
 use std::future::Future;
 
@@ -31,9 +33,13 @@ pub fn dispatch_command_requests(command_request: NetworkRequest) -> glib::Conti
         NetworkCommand::ListDeivces => spawn(list_ether_devices(), responder),
         NetworkCommand::CreateWiredConnection(conn, device) => {
             spawn(create_wired_connection(conn, device), responder)
-        },
+        }
         NetworkCommand::ListConnections => spawn(list_connections(), responder),
-        NetworkCommand::DeleteConnection(conn) => spawn(delete_connection(conn), responder)
+        NetworkCommand::GetIP4Config(conn) => spawn(get_ip_config(conn, 4), responder),
+        NetworkCommand::GetIP6Config(conn) => spawn(get_ip_config(conn, 6), responder),
+        NetworkCommand::DeleteConnection(conn) => spawn(delete_connection(conn), responder),
+        NetworkCommand::UpdateIP4Config(conn, config) => spawn(update_ip_config(conn, 4, config), responder),
+        NetworkCommand::UpdateIP6Config(conn, config) => spawn(update_ip_config(conn, 6, config), responder),
     };
     glib::Continue(true)
 }

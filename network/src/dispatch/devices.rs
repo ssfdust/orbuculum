@@ -1,8 +1,8 @@
 //! Device Module
 //!
-//! The module is used to provide the api about network devices for 
+//! The module is used to provide the api about network devices for
 //! the NetworkManager.
-//! 
+//!
 //! Functions:
 //! - list_ether_devices
 use super::{create_client, NetworkResponse};
@@ -33,7 +33,7 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
                     }
                 }
                 net_dev
-            },
+            }
             _ => None,
         })
         .collect();

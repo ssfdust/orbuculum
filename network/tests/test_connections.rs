@@ -1,8 +1,8 @@
 mod fixture;
 
-use rstest::rstest;
 use fixture::start_instance;
-use network::{State, send_command, NetworkCommand, NetworkResponse};
+use network::{send_command, NetworkCommand, NetworkResponse, State};
+use rstest::rstest;
 use std::sync::Arc;
 
 /// Try to create a connection
@@ -10,17 +10,32 @@ use std::sync::Arc;
 #[tokio::test]
 async fn test_connections(start_instance: &Arc<State>) {
     let mut cnt = 0;
-    if let NetworkResponse::ListDeivces(devices) = send_command(start_instance, NetworkCommand::ListDeivces).await.unwrap() {
+    if let NetworkResponse::ListDeivces(devices) =
+        send_command(start_instance, NetworkCommand::ListDeivces)
+            .await
+            .unwrap()
+    {
         for device in devices {
-            send_command(start_instance, NetworkCommand::CreateWiredConnection("test_conn".to_string(), device.mac)).await.unwrap();
+            send_command(
+                start_instance,
+                NetworkCommand::CreateWiredConnection("test_conn".to_string(), device.mac),
+            )
+            .await
+            .unwrap();
             break;
         }
     }
-    if let NetworkResponse::ListConnection(conns) = send_command(start_instance, NetworkCommand::ListConnections).await.unwrap(){
+    if let NetworkResponse::ListConnection(conns) =
+        send_command(start_instance, NetworkCommand::ListConnections)
+            .await
+            .unwrap()
+    {
         for conn in conns {
             if conn.name.contains("test_conn") {
                 cnt += 1;
-                send_command(start_instance, NetworkCommand::DeleteConnection(conn.name)).await.unwrap();
+                send_command(start_instance, NetworkCommand::DeleteConnection(conn.name))
+                    .await
+                    .unwrap();
             }
         }
     }

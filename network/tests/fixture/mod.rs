@@ -1,7 +1,7 @@
+use network::{create_channel, run_network_manager_loop, State};
 use rstest::fixture;
-use std::thread;
 use std::sync::Arc;
-use network::{run_network_manager_loop, create_channel, State};
+use std::thread;
 
 #[fixture]
 #[once]
