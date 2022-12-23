@@ -6,19 +6,20 @@ use super::{create_client, NetworkResponse};
 use eyre::Result;
 use ipnet::IpNet;
 use nm::{
-    ConnectionExt, IPAddress, IPRoute, SettingIPConfig, SettingIPConfigExt,
-    SettingIP4Config, SettingIP6Config
+    ConnectionExt, IPAddress, IPRoute, SettingIP4Config, SettingIP6Config, SettingIPConfig,
+    SettingIPConfigExt,
 };
 use std::net::IpAddr;
+use std::boxed::Box;
 
 /// The Ip configuration struct
 #[derive(Debug, Default)]
 pub struct IPConfig {
-    method: String,
-    addresses: Vec<IpNet>,
-    gateway: Option<IpAddr>,
-    dns: Vec<IpAddr>,
-    routes: Vec<Route>,
+    pub method: String,
+    pub addresses: Vec<IpNet>,
+    pub gateway: Option<IpAddr>,
+    pub dns: Vec<IpAddr>,
+    pub routes: Vec<Route>,
 }
 
 /// The Route struct
@@ -26,7 +27,7 @@ pub struct IPConfig {
 pub struct Route {
     pub family: i32,
     pub dest: IpNet,
-    pub next_hop: Option<String>,
+    pub next_hop: Option<IpAddr>,
     pub metric: i64,
 }
 
@@ -37,7 +38,7 @@ impl TryFrom<IPRoute> for Route {
         if let Some(dest) = val.dest() {
             route.family = val.family();
             route.dest = format!("{}/{}", dest.to_string(), val.prefix()).parse()?;
-            route.next_hop = val.next_hop().map(|x| x.to_string());
+            route.next_hop = val.next_hop().map(|x| x.parse().unwrap());
             route.metric = val.metric();
         } else {
             bail!("No dest found in route connection");
@@ -53,7 +54,7 @@ impl TryInto<IPRoute> for Route {
             self.family,
             &self.dest.addr().to_string(),
             self.dest.prefix_len() as u32,
-            self.next_hop.map(|x| x.as_str()),
+            self.next_hop.map(|x| &*Box::leak(x.to_string().into_boxed_str())),
             self.metric,
         )?;
         Ok(iproute)
@@ -141,7 +142,7 @@ pub async fn update_ip_config(
     config: IPConfig,
 ) -> Result<NetworkResponse> {
     let client = create_client().await?;
-    try {
+    let conn: Option<nm::RemoteConnection> = try {
         let connection: nm::RemoteConnection = client.connection_by_id(&conn_name)?;
         let ipconfig: SettingIPConfig;
 
@@ -153,11 +154,11 @@ pub async fn update_ip_config(
         }
 
         ipconfig.set_method(Some(&config.method));
-        ipconfig.set_gateway(config.gateway.map(|x| x.to_string().as_str()));
+        ipconfig.set_gateway(config.gateway.map(|x| &*Box::leak(x.to_string().into_boxed_str())));
 
         ipconfig.clear_addresses();
         for address in config.addresses {
-            ipconfig.add_address(&ipnet2ipaddr(address)?);
+            ipconfig.add_address(&ipnet2ipaddr(address).ok()?);
         }
 
         ipconfig.clear_dns();
@@ -167,13 +168,10 @@ pub async fn update_ip_config(
 
         ipconfig.clear_routes();
         for route in config.routes {
-            ipconfig.add_route(&route.try_into()?);
+            ipconfig.add_route(&route.try_into().ok()?);
         }
-        if family == 4 {
-            let ip4config: SettingIP4Config = ipconfig.into();
-        } else {
-            let ip6config: SettingIP6Config = ipconfig.into();
-        }
+        connection.commit_changes_future(true).await.unwrap();
+        connection
     };
     Ok(NetworkResponse::Success)
 }

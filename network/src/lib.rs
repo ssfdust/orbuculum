@@ -14,7 +14,7 @@ use eyre::{Result, WrapErr};
 use glib::{MainContext, MainLoop};
 use tokio::sync::oneshot;
 
-use dispatch::ipconfigs::IPConfig;
+pub use dispatch::ipconfigs::{IPConfig, Route};
 
 type TokioResponder = oneshot::Sender<Result<NetworkResponse>>;
 

@@ -38,8 +38,12 @@ pub fn dispatch_command_requests(command_request: NetworkRequest) -> glib::Conti
         NetworkCommand::GetIP4Config(conn) => spawn(get_ip_config(conn, 4), responder),
         NetworkCommand::GetIP6Config(conn) => spawn(get_ip_config(conn, 6), responder),
         NetworkCommand::DeleteConnection(conn) => spawn(delete_connection(conn), responder),
-        NetworkCommand::UpdateIP4Config(conn, config) => spawn(update_ip_config(conn, 4, config), responder),
-        NetworkCommand::UpdateIP6Config(conn, config) => spawn(update_ip_config(conn, 6, config), responder),
+        NetworkCommand::UpdateIP4Config(conn, config) => {
+            spawn(update_ip_config(conn, 4, config), responder)
+        }
+        NetworkCommand::UpdateIP6Config(conn, config) => {
+            spawn(update_ip_config(conn, 6, config), responder)
+        }
     };
     glib::Continue(true)
 }
