@@ -33,34 +33,53 @@ async fn test_ip_configuration(start_instance: &Arc<State>) {
 #[rstest]
 #[tokio::test]
 async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
-    if let NetworkResponse::ListDeivces(devices) =
-        send_command(start_instance, NetworkCommand::ListDeivces)
-            .await
-            .unwrap()
-    {
-        for device in devices {
-            send_command(
-                start_instance,
-                NetworkCommand::CreateWiredConnection("test_conn".to_string(), device.mac),
-            )
-            .await
-            .unwrap();
-            break;
-        }
-    }
-    let gw: IpAddr = "192.168.100.1".parse().unwrap();
-    let addresses: Vec<IpNet> = vec!["192.168.100.39/24".parse().unwrap()];
-    let ip_config = IPConfig {
+    let gw: IpAddr = "192.168.101.1".parse().unwrap();
+    let addresses: Vec<IpNet> = vec!["192.168.101.38/24".parse().unwrap()];
+    let ip4_config = IPConfig {
         method: String::from("manual"),
-        addresses: vec![],
+        addresses,
         gateway: Some(gw),
         dns: vec![gw],
         routes: vec![],
     };
     send_command(
         start_instance,
-        NetworkCommand::UpdateIP4Config(String::from("test_conn"), ip_config),
+        NetworkCommand::UpdateIP4Config(String::from("test_con1"), ip4_config),
     )
     .await
     .unwrap();
+    if let NetworkResponse::IP(Some(ipconfig)) = send_command(
+        start_instance,
+        NetworkCommand::GetIP4Config("test_con1".to_string()),
+    )
+    .await
+    .unwrap()
+    {
+        println!("{:?}", ipconfig);
+    }
+    tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    let gw: IpAddr = "fe80::5c51:8df8:ee41:d98a".parse().unwrap();
+    let addresses: Vec<IpNet> = vec!["fe80::5c51:8df8:ee41:d98a/64".parse().unwrap()];
+    let ip6_config = IPConfig {
+        method: String::from("manual"),
+        addresses,
+        gateway: Some(gw),
+        dns: vec![gw],
+        routes: vec![],
+    };
+    send_command(
+        start_instance,
+        NetworkCommand::UpdateIP6Config(String::from("test_con1"), ip6_config),
+    )
+    .await
+    .unwrap();
+    if let NetworkResponse::IP(Some(ipconfig)) = send_command(
+        start_instance,
+        NetworkCommand::GetIP6Config("test_con1".to_string()),
+    )
+    .await
+    .unwrap()
+    {
+        println!("{:?}", ipconfig);
+    }
 }

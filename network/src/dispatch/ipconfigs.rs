@@ -11,6 +11,7 @@ use nm::{
 };
 use std::net::IpAddr;
 use std::boxed::Box;
+use libc::{AF_INET, AF_INET6};
 
 /// The Ip configuration struct
 #[derive(Debug, Default)]
@@ -76,10 +77,10 @@ fn ipnet2ipaddr(ipnet: IpNet) -> Result<IPAddress> {
     let ipaddress: IPAddress;
     match ipnet {
         IpNet::V4(v4) => {
-            ipaddress = IPAddress::new(2, &v4.to_string(), v4.prefix_len() as u32)?;
+            ipaddress = IPAddress::new(AF_INET, &v4.addr().to_string(), v4.prefix_len() as u32)?;
         }
         IpNet::V6(v6) => {
-            ipaddress = IPAddress::new(10, &v6.to_string(), v6.prefix_len() as u32)?;
+            ipaddress = IPAddress::new(AF_INET6, &v6.addr().to_string(), v6.prefix_len() as u32)?;
         }
     }
     Ok(ipaddress)
@@ -142,7 +143,7 @@ pub async fn update_ip_config(
     config: IPConfig,
 ) -> Result<NetworkResponse> {
     let client = create_client().await?;
-    let conn: Option<nm::RemoteConnection> = try {
+    let _conn: Option<nm::RemoteConnection> = try {
         let connection: nm::RemoteConnection = client.connection_by_id(&conn_name)?;
         let ipconfig: SettingIPConfig;
 
@@ -170,6 +171,7 @@ pub async fn update_ip_config(
         for route in config.routes {
             ipconfig.add_route(&route.try_into().ok()?);
         }
+
         connection.commit_changes_future(true).await.unwrap();
         connection
     };
