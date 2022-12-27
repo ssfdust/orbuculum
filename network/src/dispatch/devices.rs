@@ -7,18 +7,20 @@
 //! - list_ether_devices
 use super::{create_client, NetworkResponse};
 use eyre::Result;
-use nm::{DeviceExt, DeviceType};
+use nm::{ConnectionExt, DeviceExt, DeviceType};
 
-pub struct NetDeivce {
+#[derive(Clone)]
+pub struct NetDevice {
     pub name: String,
     pub mac: String,
+    pub conn: Option<String>,
 }
 
 /// List all wired interfaces
 pub async fn list_ether_devices() -> Result<NetworkResponse> {
     let client = create_client().await?;
 
-    let devices: Vec<NetDeivce> = client
+    let devices: Vec<NetDevice> = client
         .devices()
         .into_iter()
         .filter_map(|device| match device.device_type() {
@@ -26,9 +28,16 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
                 let mut net_dev = None;
                 if let Some(interface) = device.interface() {
                     if let Some(mac) = device.hw_address() {
-                        net_dev = Some(NetDeivce {
+                        let conn = device
+                            .available_connections()
+                            .into_iter()
+                            .next()
+                            .and_then(|x| x.id())
+                            .map(|x| x.to_string());
+                        net_dev = Some(NetDevice {
                             name: interface.to_string(),
                             mac: mac.to_string(),
+                            conn,
                         })
                     }
                 }

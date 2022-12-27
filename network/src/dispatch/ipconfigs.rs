@@ -5,13 +5,10 @@
 use super::{create_client, NetworkResponse};
 use eyre::Result;
 use ipnet::IpNet;
-use nm::{
-    ConnectionExt, IPAddress, IPRoute, SettingIP4Config, SettingIP6Config, SettingIPConfig,
-    SettingIPConfigExt,
-};
-use std::net::IpAddr;
-use std::boxed::Box;
 use libc::{AF_INET, AF_INET6};
+use nm::{ConnectionExt, IPAddress, IPRoute, SettingIPConfig, SettingIPConfigExt};
+use std::boxed::Box;
+use std::net::IpAddr;
 
 /// The Ip configuration struct
 #[derive(Debug, Default)]
@@ -55,7 +52,8 @@ impl TryInto<IPRoute> for Route {
             self.family,
             &self.dest.addr().to_string(),
             self.dest.prefix_len() as u32,
-            self.next_hop.map(|x| &*Box::leak(x.to_string().into_boxed_str())),
+            self.next_hop
+                .map(|x| &*Box::leak(x.to_string().into_boxed_str())),
             self.metric,
         )?;
         Ok(iproute)
@@ -155,7 +153,11 @@ pub async fn update_ip_config(
         }
 
         ipconfig.set_method(Some(&config.method));
-        ipconfig.set_gateway(config.gateway.map(|x| &*Box::leak(x.to_string().into_boxed_str())));
+        ipconfig.set_gateway(
+            config
+                .gateway
+                .map(|x| &*Box::leak(x.to_string().into_boxed_str())),
+        );
 
         ipconfig.clear_addresses();
         for address in config.addresses {

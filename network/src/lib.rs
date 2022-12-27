@@ -7,8 +7,8 @@ mod dispatch;
 
 use std::sync::Arc;
 
-use dispatch::connections::Connection;
-use dispatch::devices::NetDeivce;
+pub use dispatch::connections::Connection;
+pub use dispatch::devices::NetDevice;
 use dispatch::dispatch_command_requests;
 use eyre::{Result, WrapErr};
 use glib::{MainContext, MainLoop};
@@ -40,7 +40,7 @@ pub struct NetworkRequest {
 }
 
 pub enum NetworkResponse {
-    ListDeivces(Vec<NetDeivce>),
+    ListDeivces(Vec<NetDevice>),
     ListConnection(Vec<Connection>),
     IP(Option<IPConfig>),
     Success,

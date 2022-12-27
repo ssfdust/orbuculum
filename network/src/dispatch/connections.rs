@@ -8,8 +8,10 @@
 //! - delete_connection
 use super::{create_client, NetworkResponse};
 use eyre::Result;
+use glib::future_with_timeout;
 use nm::{
-    ConnectionExt, SettingConnection, SettingWired, SimpleConnection, SETTING_WIRED_SETTING_NAME,
+    ConnectionExt, SettingConnection, SettingWired, SimpleConnection,
+    SETTING_WIRED_SETTING_NAME,
 };
 
 /// The simplified connection struct
@@ -41,7 +43,7 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
 
     s_connection.set_type(Some(&SETTING_WIRED_SETTING_NAME));
     s_connection.set_id(Some(&conn_name));
-    s_connection.set_autoconnect(false);
+    s_connection.set_autoconnect(true);
     if device.contains(":") {
         let wired_settings = SettingWired::new();
         wired_settings.set_mac_address(Some(&device));
@@ -51,7 +53,17 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
     }
     connection.add_setting(&s_connection);
 
-    client.add_connection_future(&connection, true).await?;
+    if let Err(_) = future_with_timeout(std::time::Duration::from_millis(600), async {
+        client
+            .add_connection_future(&connection, true)
+            .await
+            .unwrap();
+    })
+    .await
+    {
+        println!("add connection {} timeout", conn_name);
+    }
+
     Ok(NetworkResponse::Success)
 }
 
