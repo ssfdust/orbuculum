@@ -1,0 +1,16 @@
+syntax = "proto3";
+package network;
+
+service Network {
+    rpc ListConnection () returns (ConnectionReply);
+}
+
+message ConnectionReplyBody {
+    string name = 1;
+}
+
+message ConnectionReply {
+    int32 code = 1;
+    string msg = 2;
+    repeated ConnectionReplyBody data = 3;
+}

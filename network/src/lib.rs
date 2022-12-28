@@ -1,4 +1,6 @@
 #![feature(try_blocks)]
+//! The network module
+//! Provide the ability to communicate with the NetworkManager service.
 
 #[macro_use]
 extern crate eyre;
@@ -18,10 +20,19 @@ pub use dispatch::ipconfigs::{IPConfig, Route};
 
 type TokioResponder = oneshot::Sender<Result<NetworkResponse>>;
 
+/// The state
 pub struct State {
-    pub glib_sender: glib::Sender<NetworkRequest>,
+    glib_sender: glib::Sender<NetworkRequest>,
 }
 
+impl State {
+    pub fn new(sender: glib::Sender<NetworkRequest>) -> Self {
+        State { glib_sender: sender }
+    }
+}
+
+/// The network command list
+/// provides all the command supported by the server.
 #[derive(Debug)]
 pub enum NetworkCommand {
     ListDeivces,
@@ -39,6 +50,8 @@ pub struct NetworkRequest {
     command: NetworkCommand,
 }
 
+/// The network response list
+/// provides all the responses supported by the server.
 pub enum NetworkResponse {
     ListDeivces(Vec<NetDevice>),
     ListConnection(Vec<Connection>),
@@ -70,10 +83,12 @@ pub async fn send_command(state: &Arc<State>, command: NetworkCommand) -> Result
         .or_else(|e| Err(e).context(format!("Execute command failed")))
 }
 
+/// The glib channel
 pub fn create_channel() -> (glib::Sender<NetworkRequest>, glib::Receiver<NetworkRequest>) {
     glib::MainContext::channel(glib::PRIORITY_DEFAULT)
 }
 
+/// the main loop in glibc.
 pub fn run_network_manager_loop(glib_receiver: glib::Receiver<NetworkRequest>) {
     let context = MainContext::new();
     let loop_ = MainLoop::new(Some(&context), false);
