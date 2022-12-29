@@ -163,12 +163,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
+name = "futures"
+version = "0.3.25"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38390104763dc37a5145a53c29c63c1290b5d316d6086ec32c293f6736051bb0"
+dependencies = [
+ "futures-channel",
+ "futures-core",
+ "futures-executor",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+]
+
+[[package]]
 name = "futures-channel"
 version = "0.3.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52ba265a92256105f45b719605a571ffe2d1f0fea3807304b522c1d778f79eed"
 dependencies = [
  "futures-core",
+ "futures-sink",
 ]
 
 [[package]]
@@ -223,9 +239,13 @@ version = "0.3.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "197676987abd2f9cadff84926f410af1c183608d36641465df73ae8211dc65d6"
 dependencies = [
+ "futures-channel",
  "futures-core",
+ "futures-io",
  "futures-macro",
+ "futures-sink",
  "futures-task",
+ "memchr",
  "pin-project-lite",
  "pin-utils",
  "slab",
@@ -245,7 +265,7 @@ dependencies = [
 [[package]]
 name = "gio"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "bitflags",
  "futures-channel",
@@ -264,7 +284,7 @@ dependencies = [
 [[package]]
 name = "gio-sys"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "glib-sys",
  "gobject-sys",
@@ -276,7 +296,7 @@ dependencies = [
 [[package]]
 name = "glib"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "bitflags",
  "futures-channel",
@@ -298,7 +318,7 @@ dependencies = [
 [[package]]
 name = "glib-macros"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "anyhow",
  "heck 0.4.0",
@@ -312,7 +332,7 @@ dependencies = [
 [[package]]
 name = "glib-sys"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "libc",
  "system-deps 6.0.3",
@@ -321,7 +341,7 @@ dependencies = [
 [[package]]
 name = "gobject-sys"
 version = "0.17.0"
-source = "git+https://github.com/gtk-rs/gtk-rs-core#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
+source = "git+https://github.com/gtk-rs/gtk-rs-core.git#8a9d3bee666bb2741b4c79432e2ec0427f0fcd0e"
 dependencies = [
  "glib-sys",
  "libc",
@@ -645,6 +665,10 @@ checksum = "86f0b0d4bf799edbc74508c1e8bf170ff5f41238e5f8225603ca7caaae2b7860"
 name = "orbuculum"
 version = "0.1.0"
 dependencies = [
+ "futures",
+ "glib",
+ "hyper",
+ "lazy_static",
  "network",
  "server",
  "tokio",
@@ -938,11 +962,15 @@ name = "server"
 version = "0.1.0"
 dependencies = [
  "eyre",
+ "futures",
+ "glib",
+ "hyper",
  "network",
  "prost",
  "tokio",
  "tonic",
  "tonic-build",
+ "tower",
 ]
 
 [[package]]

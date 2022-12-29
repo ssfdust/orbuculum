@@ -10,8 +10,7 @@ use super::{create_client, NetworkResponse};
 use eyre::Result;
 use glib::future_with_timeout;
 use nm::{
-    ConnectionExt, SettingConnection, SettingWired, SimpleConnection,
-    SETTING_WIRED_SETTING_NAME,
+    ConnectionExt, SettingConnection, SettingWired, SimpleConnection, SETTING_WIRED_SETTING_NAME,
 };
 
 /// The simplified connection struct

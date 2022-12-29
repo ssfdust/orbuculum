@@ -1,7 +1,4 @@
-use network::{
-    create_channel, run_network_manager_loop, send_command, Connection, IPConfig, NetDevice,
-    NetworkCommand, NetworkResponse, State,
-};
+use network::{create_channel, run_network_manager_loop, State, NetDevice};
 use server::create_server;
 use std::sync::Arc;
 use std::thread;
@@ -38,5 +35,5 @@ async fn main() {
     });
 
     let shared_state = Arc::new(State::new(glib_sender));
-    create_server().await.unwrap();
+    create_server(shared_state).await.unwrap();
 }

@@ -27,7 +27,9 @@ pub struct State {
 
 impl State {
     pub fn new(sender: glib::Sender<NetworkRequest>) -> Self {
-        State { glib_sender: sender }
+        State {
+            glib_sender: sender,
+        }
     }
 }
 

@@ -10,6 +10,8 @@ service Network {
 
 message ConnectionReplyBody {
     string name = 1;
+    string uuid = 2;
+    string interface = 3;
 }
 
 message ConnectionReply {
