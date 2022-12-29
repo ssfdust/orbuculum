@@ -1,17 +1,33 @@
-mod initilize;
-mod services;
+use tonic::{transport::Server, Request, Response, Status};
+use network_grpc::{ConnectionReply, ConnectionReplyBody};
+use network_grpc::network_server::{Network, NetworkServer};
+use eyre::Result;
+use tokio::macros::support::Future;
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+pub mod network_grpc {
+    tonic::include_proto!("network"); // The string specified here must match the proto package name
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[derive(Debug, Default)]
+pub struct NetworkService {}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+#[tonic::async_trait]
+impl Network for NetworkService {
+    async fn list_connection(&self, request: Request<()>) -> Result<Response<ConnectionReply>, Status> {
+        println!("Got a request: {:?}", request);
+        let reply = ConnectionReply {
+            code: 0,
+            msg: "".into(),
+            data: vec![]
+        };
+        Ok(Response::new(reply))
     }
+}
+
+
+pub fn create_server() -> impl Future<Output = Result<(), tonic::transport::Error>> {
+    let addr = "127.0.0.1:50051".parse().unwrap();
+    let network_service = NetworkService::default();
+
+    Server::builder().add_service(NetworkServer::new(network_service)).serve(addr)
 }

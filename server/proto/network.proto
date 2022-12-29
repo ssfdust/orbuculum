@@ -1,9 +1,12 @@
 syntax = "proto3";
+import "google/protobuf/empty.proto";
 package network;
 
+
 service Network {
-    rpc ListConnection () returns (ConnectionReply);
+    rpc ListConnection (google.protobuf.Empty) returns (ConnectionReply);
 }
+
 
 message ConnectionReplyBody {
     string name = 1;
