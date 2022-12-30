@@ -1,4 +1,4 @@
-use network::{create_channel, run_network_manager_loop, State, NetDevice};
+use network::{create_channel, run_network_manager_loop, NetDevice, State};
 use server::create_server;
 use std::sync::Arc;
 use std::thread;

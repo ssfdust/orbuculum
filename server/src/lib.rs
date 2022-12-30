@@ -41,7 +41,7 @@ impl Network for NetworkService {
 
         let reply = ConnectionReply {
             code: 0,
-            msg: "".into(),
+            msg: "Successfully".into(),
             data: body,
         };
         Ok(Response::new(reply))
@@ -104,9 +104,6 @@ where
     }
 
     fn call(&mut self, mut req: hyper::Request<Body>) -> Self::Future {
-        // This is necessary because tonic internally uses `tower::buffer::Buffer`.
-        // See https://github.com/tower-rs/tower/issues/547#issuecomment-767629149
-        // for details on why this is necessary
         let clone = self.inner.clone();
         let mut inner = std::mem::replace(&mut self.inner, clone);
         req.extensions_mut().insert(self.ref_state.clone());

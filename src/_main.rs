@@ -23,9 +23,30 @@ fn sort_devices_by_udev_path(devices: Vec<NetDevice>) -> Vec<NetDevice> {
             )
         })
         .collect();
-    devices_paths.sort_by(|a, b| a.1.cmp(&b.1));
+    let mut platform_devices_paths: Vec<(NetDevice, String)> = devices_paths
+        .iter()
+        .filter_map(|dev_path| {
+            if dev_path.1.contains("platform") {
+                Some(dev_path.clone())
+            } else {
+                None
+            }
+        }).collect();
+    let mut none_platform_devices_paths: Vec<(NetDevice, String)> = devices_paths
+        .iter()
+        .filter_map(|dev_path| {
+            if dev_path.1.contains("platform") {
+                None
+            } else {
+                Some(dev_path.clone())
+            }
+        }).collect();
+    platform_devices_paths.sort_by(|a, b| a.1.cmp(&b.1));
+    none_platform_devices_paths.sort_by(|a, b| a.1.cmp(&b.1));
+    // devices_paths.sort_by(|a, b| a.1.cmp(&b.1));
+    platform_devices_paths.extend(none_platform_devices_paths);
 
-    devices_paths.iter().map(|x| x.0.clone()).collect()
+    platform_devices_paths.iter().map(|x| x.0.clone()).collect()
 }
 
 #[tokio::main]
