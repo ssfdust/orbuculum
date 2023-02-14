@@ -11,7 +11,7 @@ use std::sync::Arc;
 #[tokio::test]
 async fn test_ip_configuration(start_instance: &Arc<State>) {
     if let NetworkResponse::IP(Some(ipconfig)) = send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::GetIP4Config("virtbr0".to_string()),
     )
     .await
@@ -20,7 +20,7 @@ async fn test_ip_configuration(start_instance: &Arc<State>) {
         println!("{:?}", ipconfig);
     }
     if let NetworkResponse::IP(Some(ipconfig)) = send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::GetIP6Config("virtbr0".to_string()),
     )
     .await
@@ -33,6 +33,21 @@ async fn test_ip_configuration(start_instance: &Arc<State>) {
 #[rstest]
 #[tokio::test]
 async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
+    if let NetworkResponse::ListDeivces(devices) =
+        send_command(Arc::clone(start_instance), NetworkCommand::ListDeivces)
+            .await
+            .unwrap()
+    {
+        for device in devices {
+            send_command(
+                Arc::clone(start_instance),
+                NetworkCommand::CreateWiredConnection("test_con1".to_string(), device.mac),
+            )
+            .await
+            .unwrap();
+            break;
+        }
+    }
     let gw: IpAddr = "192.168.101.1".parse().unwrap();
     let addresses: Vec<IpNet> = vec!["192.168.101.38/24".parse().unwrap()];
     let ip4_config = IPConfig {
@@ -43,13 +58,13 @@ async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
         routes: vec![],
     };
     send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::UpdateIP4Config(String::from("test_con1"), ip4_config),
     )
     .await
     .unwrap();
     if let NetworkResponse::IP(Some(ipconfig)) = send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::GetIP4Config("test_con1".to_string()),
     )
     .await
@@ -68,18 +83,31 @@ async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
         routes: vec![],
     };
     send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::UpdateIP6Config(String::from("test_con1"), ip6_config),
     )
     .await
     .unwrap();
     if let NetworkResponse::IP(Some(ipconfig)) = send_command(
-        start_instance,
+        Arc::clone(start_instance),
         NetworkCommand::GetIP6Config("test_con1".to_string()),
     )
     .await
     .unwrap()
     {
         println!("{:?}", ipconfig);
+    }
+    if let NetworkResponse::ListConnection(conns) =
+        send_command(Arc::clone(start_instance), NetworkCommand::ListConnections)
+            .await
+            .unwrap()
+    {
+        for conn in conns {
+            if conn.name.contains("test_con1") {
+                send_command(Arc::clone(start_instance), NetworkCommand::DeleteConnection(conn.name))
+                    .await
+                    .unwrap();
+            }
+        }
     }
 }

@@ -7,43 +7,48 @@
 //! - list_ether_devices
 use super::{create_client, NetworkResponse};
 use eyre::Result;
-use nm::{ConnectionExt, DeviceExt, DeviceType};
+use nm::{ConnectionExt, DeviceExt};
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct NetDevice {
     pub name: String,
     pub mac: String,
+    pub device_type: String,
     pub conn: Option<String>,
 }
 
-/// List all wired interfaces
+/// List all interfaces with network manager connection names.
+///
+/// The function shows all information about the interfaces, including interface
+/// name, device_type, associated connection names and ip addresses.
+///
+/// The returned result is not user friendly, high layer application should 
+/// convert the result by themselfs.
 pub async fn list_ether_devices() -> Result<NetworkResponse> {
     let client = create_client().await?;
 
     let devices: Vec<NetDevice> = client
         .devices()
         .into_iter()
-        .filter_map(|device| match device.device_type() {
-            DeviceType::Ethernet => {
-                let mut net_dev = None;
-                if let Some(interface) = device.interface() {
-                    if let Some(mac) = device.hw_address() {
-                        let conn = device
-                            .available_connections()
-                            .into_iter()
-                            .next()
-                            .and_then(|x| x.id())
-                            .map(|x| x.to_string());
-                        net_dev = Some(NetDevice {
-                            name: interface.to_string(),
-                            mac: mac.to_string(),
-                            conn,
-                        })
+        .map(|device| {
+            let mut net_dev = NetDevice::default();
+            if let Some(interface) = device.interface() {
+                if let Some(mac) = device.hw_address() {
+                    let conn = device
+                        .available_connections()
+                        .into_iter()
+                        .next()
+                        .and_then(|x| (x.id()))
+                        .map(|x| x.to_string());
+                    net_dev = NetDevice {
+                        name: interface.to_string(),
+                        device_type: device.device_type().to_string(),
+                        mac: mac.to_string(),
+                        conn,
                     }
                 }
-                net_dev
             }
-            _ => None,
+            net_dev
         })
         .collect();
     Ok(NetworkResponse::ListDeivces(devices))

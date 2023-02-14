@@ -10,5 +10,5 @@ pub fn start_instance() -> Arc<State> {
     thread::spawn(move || {
         run_network_manager_loop(glib_receiver);
     });
-    Arc::new(State { glib_sender })
+    Arc::new(State::new(glib_sender))
 }

@@ -1,11 +1,24 @@
 #![feature(try_blocks)]
-//! The network module
-//! Provide the ability to communicate with the NetworkManager service.
+//! The network module is to conmuicate with the Network Manager service.
+//! It provides `list`, `modify`, `delete`, `create` and `update` function 
+//! to a network manager connection.
+//!
+//! And , you can list all the devices' information as well.
+//! 
+//! All commands are defined in the `NetworkCommand` enumeration.
+//!
+//! # How to use the library
+//! ## Within glib library
+//! 
+//! ```rust
+//! 
+//! ```
 
 #[macro_use]
 extern crate eyre;
 
 mod dispatch;
+mod utils;
 
 use std::sync::Arc;
 
@@ -16,11 +29,11 @@ use eyre::{Result, WrapErr};
 use glib::{MainContext, MainLoop};
 use tokio::sync::oneshot;
 
-pub use dispatch::ipconfigs::{IPConfig, Route};
+pub use utils::{IPConfig, Route};
 
 type TokioResponder = oneshot::Sender<Result<NetworkResponse>>;
 
-/// The state
+/// The shared state for tokio application to conmuicate with glib maincontext.
 pub struct State {
     glib_sender: glib::Sender<NetworkRequest>,
 }
@@ -37,11 +50,13 @@ impl State {
 /// provides all the command supported by the server.
 #[derive(Debug)]
 pub enum NetworkCommand {
+    // list
     ListDeivces,
     CreateWiredConnection(String, String),
     ListConnections,
     GetIP4Config(String),
     GetIP6Config(String),
+    // modify
     DeleteConnection(String),
     UpdateIP4Config(String, IPConfig),
     UpdateIP6Config(String, IPConfig),
@@ -50,6 +65,12 @@ pub enum NetworkCommand {
 pub struct NetworkRequest {
     responder: TokioResponder,
     command: NetworkCommand,
+}
+
+impl NetworkRequest {
+    pub fn new(responder: TokioResponder, command: NetworkCommand) -> Self {
+        NetworkRequest { responder, command }
+    }
 }
 
 /// The network response list
@@ -62,13 +83,8 @@ pub enum NetworkResponse {
     Failed,
 }
 
-impl NetworkRequest {
-    pub fn new(responder: TokioResponder, command: NetworkCommand) -> Self {
-        NetworkRequest { responder, command }
-    }
-}
 
-pub async fn send_command(state: &Arc<State>, command: NetworkCommand) -> Result<NetworkResponse> {
+pub async fn send_command(state: Arc<State>, command: NetworkCommand) -> Result<NetworkResponse> {
     let (responder, receiver) = oneshot::channel();
 
     state
