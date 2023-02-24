@@ -85,7 +85,7 @@ impl<S> Layer<S> for GlibStateLayer {
     fn layer(&self, service: S) -> Self::Service {
         GlibStateMiddleware {
             inner: service,
-            ref_state: self.shared_state.clone(),
+            ref_state: Arc::clone(self.shared_state),
         }
     }
 }

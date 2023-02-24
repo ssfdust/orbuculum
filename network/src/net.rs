@@ -1,12 +1,19 @@
+//! ## Net structures
+//! 
+//! The `net` moudule contains structures used to represent ip and route objects
+//! and they are the bridges between common rust objects and Glib objects.
 use eyre::Result;
 use ipnet::IpNet;
 use std::boxed::Box;
 use std::net::IpAddr;
-use nm::{IPAddress, IPRoute, SettingIPConfig, SettingIPConfigExt};
+use nm::{IPAddress, IPRoute, SettingIPConfig, SettingIPConfigExt, IPConfig as NMIPConfig};
 
-/// The Ip configuration struct
-#[derive(Debug, Default)]
-pub struct IPConfig {
+/// A representation of the net information
+///
+/// The `NetInfo` type is a combination of addresses, gateway, dns and routes.
+/// The method is to idenitify how the net is initilized.
+#[derive(Debug, Default, Clone)]
+pub struct NetInfo {
     pub method: String,
     pub addresses: Vec<IpNet>,
     pub gateway: Option<IpAddr>,
@@ -14,8 +21,13 @@ pub struct IPConfig {
     pub routes: Vec<Route>,
 }
 
-/// The Route struct
-#[derive(Debug, Default)]
+/// A representation of the route information
+///
+/// The `Route` type consists of four properties. The `family` property is meant
+/// for the v4 or v6. The `dest` property is meant for  route destination. The 
+/// `next_hop` property is meant for the ip address of next hop. The `metric`
+/// is meant for linux route metric.
+#[derive(Debug, Default, Clone)]
 pub struct Route {
     pub family: i32,
     pub dest: IpNet,
@@ -23,12 +35,12 @@ pub struct Route {
     pub metric: i64,
 }
 
-impl TryFrom<SettingIPConfig> for IPConfig {
+impl TryFrom<SettingIPConfig> for NetInfo {
     type Error = eyre::ErrReport;
-    fn try_from(setting_ip_config: SettingIPConfig) -> Result<IPConfig> {
+    fn try_from(setting_ip_config: SettingIPConfig) -> Result<NetInfo> {
         // Get configuration method
-        let ipconfig: Option<IPConfig> = try {
-            let mut config = IPConfig::default();
+        let ipconfig: Option<NetInfo> = try {
+            let mut config = NetInfo::default();
             let method = setting_ip_config.method()?;
             config.method = method.into();
 
@@ -55,6 +67,54 @@ impl TryFrom<SettingIPConfig> for IPConfig {
 
             // Get the gateway of the configuration
             if let Some(Ok(gateway)) = setting_ip_config.gateway().map(|x| x.to_string().parse()) {
+                config.gateway = Some(gateway);
+            }
+            config
+        };
+        if let Some(ip_config) = ipconfig {
+            Ok(ip_config)
+        } else {
+            bail!("Failed to")
+        }
+    }
+}
+
+impl TryFrom<NMIPConfig> for NetInfo {
+    type Error = eyre::ErrReport;
+    fn try_from(nm_ip_config: NMIPConfig) -> Result<Self> {
+        let ipconfig: Option<NetInfo> = try {
+            let mut config = NetInfo::default();
+
+            // Get all ip addresses in the connection
+            config.addresses = nm_ip_config.addresses().iter().filter_map(|x| {
+                let addr = x.clone();
+                if let Ok(ipnet) = ipaddr2ipnet(addr) {
+                    Some(ipnet)
+                } else {
+                    None
+                }
+            }).collect();
+
+            config.dns = nm_ip_config.nameservers().iter().filter_map(|x| {
+                if let Ok(dns) = x.to_string().parse() {
+                    Some(dns)
+                } else {
+                    None
+                }
+            }).collect();
+
+            // Get the routes of the configuration
+            config.routes = nm_ip_config.routes().iter().filter_map(|x| {
+                let addr = x.clone();
+                if let Ok(route) = Route::try_from(addr) {
+                    Some(route)
+                } else {
+                    None
+                }
+            }).collect();
+
+            // Get the gateway of the configuration
+            if let Some(Ok(gateway)) = nm_ip_config.gateway().map(|x| x.to_string().parse()) {
                 config.gateway = Some(gateway);
             }
             config
@@ -97,6 +157,7 @@ impl TryInto<IPRoute> for Route {
         Ok(iproute)
     }
 }
+
 
 fn ipaddr2ipnet(ipaddr: IPAddress) -> Result<IpNet> {
     match ipaddr.address() {

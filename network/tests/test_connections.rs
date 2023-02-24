@@ -5,6 +5,20 @@ use network::{send_command, NetworkCommand, NetworkResponse, State};
 use rstest::rstest;
 use std::sync::Arc;
 
+#[rstest]
+#[tokio::test]
+async fn test_list_devices(start_instance: &Arc<State>) {
+    if let NetworkResponse::ListDeivces(devices) =
+        send_command(Arc::clone(start_instance), NetworkCommand::ListDeivces)
+            .await
+            .unwrap()
+    {
+        for device in devices {
+            println!("{:?}", device);
+        }
+    }
+}
+
 /// Try to create a connection
 #[rstest]
 #[tokio::test]

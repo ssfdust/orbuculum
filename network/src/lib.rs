@@ -18,7 +18,8 @@
 extern crate eyre;
 
 mod dispatch;
-mod utils;
+mod net;
+mod tokio;
 
 use std::sync::Arc;
 
@@ -29,7 +30,7 @@ use eyre::{Result, WrapErr};
 use glib::{MainContext, MainLoop};
 use tokio::sync::oneshot;
 
-pub use utils::{IPConfig, Route};
+pub use net::{NetInfo, Route};
 
 type TokioResponder = oneshot::Sender<Result<NetworkResponse>>;
 
@@ -58,8 +59,8 @@ pub enum NetworkCommand {
     GetIP6Config(String),
     // modify
     DeleteConnection(String),
-    UpdateIP4Config(String, IPConfig),
-    UpdateIP6Config(String, IPConfig),
+    UpdateIP4Config(String, NetInfo),
+    UpdateIP6Config(String, NetInfo),
 }
 
 pub struct NetworkRequest {
@@ -78,7 +79,7 @@ impl NetworkRequest {
 pub enum NetworkResponse {
     ListDeivces(Vec<NetDevice>),
     ListConnection(Vec<Connection>),
-    IP(Option<IPConfig>),
+    IP(Option<NetInfo>),
     Success,
     Failed,
 }
