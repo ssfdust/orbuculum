@@ -2,7 +2,7 @@ mod fixture;
 
 use fixture::start_instance;
 use ipnet::IpNet;
-use network::{send_command, IPConfig, NetworkCommand, NetworkResponse, Route, State};
+use network::{send_command, NetInfo, NetworkCommand, NetworkResponse, State};
 use rstest::rstest;
 use std::net::IpAddr;
 use std::sync::Arc;
@@ -50,7 +50,7 @@ async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
     }
     let gw: IpAddr = "192.168.101.1".parse().unwrap();
     let addresses: Vec<IpNet> = vec!["192.168.101.38/24".parse().unwrap()];
-    let ip4_config = IPConfig {
+    let ip4_config = NetInfo {
         method: String::from("manual"),
         addresses,
         gateway: Some(gw),
@@ -75,7 +75,7 @@ async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
     tokio::time::sleep(std::time::Duration::from_secs(5)).await;
     let gw: IpAddr = "fe80::5c51:8df8:ee41:d98a".parse().unwrap();
     let addresses: Vec<IpNet> = vec!["fe80::5c51:8df8:ee41:d98a/64".parse().unwrap()];
-    let ip6_config = IPConfig {
+    let ip6_config = NetInfo {
         method: String::from("manual"),
         addresses,
         gateway: Some(gw),

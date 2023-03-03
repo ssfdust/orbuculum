@@ -8,7 +8,7 @@ use ipnet::IpNet;
 use libc::{AF_INET, AF_INET6};
 use nm::{ConnectionExt, IPAddress, SettingIPConfig, SettingIPConfigExt, SettingIP4Config, SettingIP6Config};
 use std::boxed::Box;
-use crate::utils::IPConfig;
+use crate::net::NetInfo;
 
 fn ipnet2ipaddr(ipnet: IpNet) -> Result<IPAddress> {
     let ipaddress: IPAddress;
@@ -30,13 +30,13 @@ pub async fn get_ip_config(conn_name: String, family: i32) -> Result<NetworkResp
         // Parser configuration
         if family == 4 {
             if let Some(setting_ip4_config) = connection.setting_ip4_config().map(|x| <SettingIP4Config as Into<SettingIPConfig>>::into(x)) {
-                IPConfig::try_from(setting_ip4_config)
+                NetInfo::try_from(setting_ip4_config)
             } else {
                 bail!("Failed to get ipv4 config")
             }
         } else {
             if let Some(setting_ip6_config) = connection.setting_ip6_config().map(|x| <SettingIP6Config as Into<SettingIPConfig>>::into(x)) {
-                IPConfig::try_from(setting_ip6_config)
+                NetInfo::try_from(setting_ip6_config)
             } else {
                 bail!("Failed to get ipv6 config")
             }
@@ -52,7 +52,7 @@ pub async fn get_ip_config(conn_name: String, family: i32) -> Result<NetworkResp
 pub async fn update_ip_config(
     conn_name: String,
     family: i32,
-    config: IPConfig,
+    config: NetInfo,
 ) -> Result<NetworkResponse> {
     let client = create_client().await?;
     let _conn: Option<nm::RemoteConnection> = try {

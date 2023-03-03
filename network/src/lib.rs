@@ -19,7 +19,7 @@ extern crate eyre;
 
 mod dispatch;
 mod net;
-mod tokio;
+mod tokio_client;
 
 use std::sync::Arc;
 
