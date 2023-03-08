@@ -47,9 +47,12 @@ async fn test_connections(start_instance: &Arc<State>) {
         for conn in conns {
             if conn.name.contains("test_conn") {
                 cnt += 1;
-                send_command(Arc::clone(start_instance), NetworkCommand::DeleteConnection(conn.name))
-                    .await
-                    .unwrap();
+                send_command(
+                    Arc::clone(start_instance),
+                    NetworkCommand::DeleteConnection(conn.name),
+                )
+                .await
+                .unwrap();
             }
         }
     }

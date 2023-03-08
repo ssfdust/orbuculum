@@ -1,20 +1,23 @@
 //! ## Net structures
-//! 
+//!
 //! The `net` moudule contains structures used to represent ip and route objects
 //! and they are the bridges between common rust objects and Glib objects.
+use crate::utils::{addrs_to_string, to_string, ipver_human};
 use eyre::Result;
 use ipnet::IpNet;
+use nm::{IPAddress, IPConfig as NMIPConfig, IPRoute, SettingIPConfig, SettingIPConfigExt};
+use serde::Serialize;
 use std::boxed::Box;
 use std::net::IpAddr;
-use nm::{IPAddress, IPRoute, SettingIPConfig, SettingIPConfigExt, IPConfig as NMIPConfig};
 
 /// A representation of the net information
 ///
 /// The `NetInfo` type is a combination of addresses, gateway, dns and routes.
 /// The method is to idenitify how the net is initilized.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize)]
 pub struct NetInfo {
     pub method: String,
+    #[serde(serialize_with = "addrs_to_string")]
     pub addresses: Vec<IpNet>,
     pub gateway: Option<IpAddr>,
     pub dns: Vec<IpAddr>,
@@ -24,12 +27,14 @@ pub struct NetInfo {
 /// A representation of the route information
 ///
 /// The `Route` type consists of four properties. The `family` property is meant
-/// for the v4 or v6. The `dest` property is meant for  route destination. The 
+/// for the v4 or v6. The `dest` property is meant for  route destination. The
 /// `next_hop` property is meant for the ip address of next hop. The `metric`
 /// is meant for linux route metric.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, Serialize)]
 pub struct Route {
+    #[serde(serialize_with = "ipver_human")]
     pub family: i32,
+    #[serde(serialize_with = "to_string")]
     pub dest: IpNet,
     pub next_hop: Option<IpAddr>,
     pub metric: i64,
@@ -86,32 +91,44 @@ impl TryFrom<NMIPConfig> for NetInfo {
             let mut config = NetInfo::default();
 
             // Get all ip addresses in the connection
-            config.addresses = nm_ip_config.addresses().iter().filter_map(|x| {
-                let addr = x.clone();
-                if let Ok(ipnet) = ipaddr2ipnet(addr) {
-                    Some(ipnet)
-                } else {
-                    None
-                }
-            }).collect();
+            config.addresses = nm_ip_config
+                .addresses()
+                .iter()
+                .filter_map(|x| {
+                    let addr = x.clone();
+                    if let Ok(ipnet) = ipaddr2ipnet(addr) {
+                        Some(ipnet)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
 
-            config.dns = nm_ip_config.nameservers().iter().filter_map(|x| {
-                if let Ok(dns) = x.to_string().parse() {
-                    Some(dns)
-                } else {
-                    None
-                }
-            }).collect();
+            config.dns = nm_ip_config
+                .nameservers()
+                .iter()
+                .filter_map(|x| {
+                    if let Ok(dns) = x.to_string().parse() {
+                        Some(dns)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
 
             // Get the routes of the configuration
-            config.routes = nm_ip_config.routes().iter().filter_map(|x| {
-                let addr = x.clone();
-                if let Ok(route) = Route::try_from(addr) {
-                    Some(route)
-                } else {
-                    None
-                }
-            }).collect();
+            config.routes = nm_ip_config
+                .routes()
+                .iter()
+                .filter_map(|x| {
+                    let addr = x.clone();
+                    if let Ok(route) = Route::try_from(addr) {
+                        Some(route)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
 
             // Get the gateway of the configuration
             if let Some(Ok(gateway)) = nm_ip_config.gateway().map(|x| x.to_string().parse()) {
@@ -157,7 +174,6 @@ impl TryInto<IPRoute> for Route {
         Ok(iproute)
     }
 }
-
 
 fn ipaddr2ipnet(ipaddr: IPAddress) -> Result<IpNet> {
     match ipaddr.address() {

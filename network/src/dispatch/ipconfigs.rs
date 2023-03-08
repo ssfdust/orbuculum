@@ -3,12 +3,15 @@
 //! The module is used to provide the api about ip configuration in NM.
 //! It provides both IpV4 and IpV6 Configuration.
 use super::{create_client, NetworkResponse};
+use crate::net::NetInfo;
 use eyre::Result;
 use ipnet::IpNet;
 use libc::{AF_INET, AF_INET6};
-use nm::{ConnectionExt, IPAddress, SettingIPConfig, SettingIPConfigExt, SettingIP4Config, SettingIP6Config};
+use nm::{
+    ConnectionExt, IPAddress, SettingIP4Config, SettingIP6Config, SettingIPConfig,
+    SettingIPConfigExt,
+};
 use std::boxed::Box;
-use crate::net::NetInfo;
 
 fn ipnet2ipaddr(ipnet: IpNet) -> Result<IPAddress> {
     let ipaddress: IPAddress;
@@ -29,13 +32,19 @@ pub async fn get_ip_config(conn_name: String, family: i32) -> Result<NetworkResp
     let ip_config_rst = if let Some(connection) = client.connection_by_id(&conn_name) {
         // Parser configuration
         if family == 4 {
-            if let Some(setting_ip4_config) = connection.setting_ip4_config().map(|x| <SettingIP4Config as Into<SettingIPConfig>>::into(x)) {
+            if let Some(setting_ip4_config) = connection
+                .setting_ip4_config()
+                .map(|x| <SettingIP4Config as Into<SettingIPConfig>>::into(x))
+            {
                 NetInfo::try_from(setting_ip4_config)
             } else {
                 bail!("Failed to get ipv4 config")
             }
         } else {
-            if let Some(setting_ip6_config) = connection.setting_ip6_config().map(|x| <SettingIP6Config as Into<SettingIPConfig>>::into(x)) {
+            if let Some(setting_ip6_config) = connection
+                .setting_ip6_config()
+                .map(|x| <SettingIP6Config as Into<SettingIPConfig>>::into(x))
+            {
                 NetInfo::try_from(setting_ip6_config)
             } else {
                 bail!("Failed to get ipv6 config")

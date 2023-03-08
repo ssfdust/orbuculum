@@ -17,6 +17,7 @@ git = 'https://github.com/gtk-rs/gtk-rs-core'
 
 [dev-dependencies]
 rstest = "0.16.0"
+serde_derive = "1.0.152"
 
 [dependencies]
 glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.17.0" }
@@ -25,3 +26,7 @@ eyre = "0.6.8"
 tokio = { version = "1.23.0", features = ["full"] }
 ipnet = "2.7.0"
 libc = "0.2.139"
+serde_json = "1.0.93"
+serde = { version = "1.0.152", features = ["derive"] }
+udev = "0.7.0"
+regex = "1.7.1"

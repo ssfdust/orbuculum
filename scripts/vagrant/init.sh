@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 [ -f /etc/.initilized ] && exit 0
 
 # Prepare environment
@@ -17,6 +17,18 @@ dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc
 # Install rust
 runuser -u vagrant -- /home/vagrant/.cargo/bin/rustup default nightly
 echo "source ~/.cargo/env" | tee -a /home/vagrant/.bashrc
+
+# Migrate to systemd name policy
+sed -i -e 's/\s*biosdevname=0\s*//' -e 's/\s*net.ifnames=0\s*//' /etc/default/grub
+grub2-mkconfig -o /boot/grub2/grub.cfg
+
+# Network Card Configuration
+mv /etc/sysconfig/network-scripts/ifcfg-eth1 /etc/sysconfig/network-scripts/ifcfg-enp1s4
+sed -i 's/eth1/enp1s4/' /etc/sysconfig/network-scripts/ifcfg-enp1s4
+mv /etc/sysconfig/network-scripts/ifcfg-eth2 /etc/sysconfig/network-scripts/ifcfg-enp1s5
+sed -i 's/eth2/enp1s5/' /etc/sysconfig/network-scripts/ifcfg-enp1s5
+mv /etc/sysconfig/network-scripts/ifcfg-eth3 /etc/sysconfig/network-scripts/ifcfg-enp1s6
+echo "IPV6_AUTOCONF=no" >> /etc/sysconfig/network-scripts/ifcfg-enp1s5
 
 # Install starship
 dnf copr enable -y atim/starship 

@@ -1,17 +1,17 @@
 #![feature(try_blocks)]
 //! The network module is to conmuicate with the Network Manager service.
-//! It provides `list`, `modify`, `delete`, `create` and `update` function 
+//! It provides `list`, `modify`, `delete`, `create` and `update` function
 //! to a network manager connection.
 //!
 //! And , you can list all the devices' information as well.
-//! 
+//!
 //! All commands are defined in the `NetworkCommand` enumeration.
 //!
 //! # How to use the library
 //! ## Within glib library
-//! 
+//!
 //! ```rust
-//! 
+//!
 //! ```
 
 #[macro_use]
@@ -20,14 +20,15 @@ extern crate eyre;
 mod dispatch;
 mod net;
 mod tokio_client;
+mod utils;
 
-use std::sync::Arc;
-
+pub use crate::tokio_client::send_command;
 pub use dispatch::connections::Connection;
 pub use dispatch::devices::NetDevice;
 use dispatch::dispatch_command_requests;
 use eyre::{Result, WrapErr};
 use glib::{MainContext, MainLoop};
+use serde_json::Value;
 use tokio::sync::oneshot;
 
 pub use net::{NetInfo, Route};
@@ -77,29 +78,20 @@ impl NetworkRequest {
 /// The network response list
 /// provides all the responses supported by the server.
 pub enum NetworkResponse {
-    ListDeivces(Vec<NetDevice>),
+    Return(Value),
     ListConnection(Vec<Connection>),
     IP(Option<NetInfo>),
     Success,
     Failed,
 }
 
-
-pub async fn send_command(state: Arc<State>, command: NetworkCommand) -> Result<NetworkResponse> {
-    let (responder, receiver) = oneshot::channel();
-
-    state
-        .glib_sender
-        .send(NetworkRequest::new(responder, command))
-        .unwrap();
-
-    let received = receiver
-        .await
-        .context("Failed to receive network thread response");
-
-    received
-        .and_then(|r| r)
-        .or_else(|e| Err(e).context(format!("Execute command failed")))
+impl NetworkResponse {
+    pub fn into_value(self) -> Option<Value> {
+        match self {
+            NetworkResponse::Return(val) => Some(val),
+            _ => None,
+        }
+    }
 }
 
 /// The glib channel
