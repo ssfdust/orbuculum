@@ -4,11 +4,10 @@
 //! the NetworkManager.
 use super::{create_client, NetworkResponse};
 use crate::net::NetInfo;
+use crate::utils::nm_display;
 use eyre::Result;
-use nm::{ConnectionExt, DeviceExt};
+use nm::ConnectionExt;
 use serde::Serialize;
-use udev::Device;
-use crate::utils::format_display;
 
 /// The network device structure
 #[derive(Clone, Default, Debug, Serialize)]
@@ -21,6 +20,8 @@ pub struct NetDevice {
     pub device_type: String,
     /// Whether the device is a virtual device
     pub r#virtual: bool,
+    /// Whether the device is managed by NetworkManager
+    pub is_managed: bool,
     pub ip4info: Option<NetInfo>,
     pub ip6info: Option<NetInfo>,
     /// all the connections related to the network device
@@ -31,18 +32,6 @@ pub struct NetDevice {
     pub id_path: Option<String>,
 }
 
-/// Extract device property information
-///
-/// This function grabs linux udev property information from network devices.
-fn grab_udev(interface: &str, property: &str) -> Option<String> {
-    let sys_path_str = format!("/sys/class/net/{}", interface);
-    let path = std::path::Path::new(&sys_path_str);
-    let device = Device::from_syspath(&path).unwrap();
-    device
-        .property_value(property)
-        .map(|x| x.to_string_lossy().to_string())
-}
-
 /// List all interfaces with network manager connection names.
 ///
 /// The function shows all information about the interfaces, including interface
@@ -51,6 +40,7 @@ fn grab_udev(interface: &str, property: &str) -> Option<String> {
 /// The returned result is not user friendly, high layer application should
 /// convert the result by themselfs.
 pub async fn list_ether_devices() -> Result<NetworkResponse> {
+    use nm::DeviceExt;
     let client = create_client().await?;
 
     let devices: Vec<NetDevice> = client
@@ -60,8 +50,9 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
             let mut net_dev = NetDevice::default();
             if let Some(interface) = device.interface() {
                 if let Some(mac) = device.hw_address() {
-                    let state = format_display(device.state());
-                    let device_type = format_display(device.device_type());
+                    let state = nm_display(device.state());
+                    let is_managed = device.is_managed();
+                    let device_type = nm_display(device.device_type());
                     let conn = device
                         .available_connections()
                         .into_iter()
@@ -76,13 +67,14 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
                         .ip6_config()
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())
                         .unwrap_or(None);
-                    let dev_path = grab_udev(&interface.to_string(), "DEVPATH");
-                    let id_path = grab_udev(&interface.to_string(), "ID_PATH");
+                    let dev_path = device.udi().map(|x| x.to_string());
+                    let id_path = device.path().map(|x| x.to_string());
                     net_dev = NetDevice {
                         name: interface.to_string(),
                         ip4info,
                         state,
-                        r#virtual: dev_path.as_ref().map(|x| x.contains("virtual")).unwrap_or(false),
+                        r#virtual: device.is_software(),
+                        is_managed,
                         ip6info,
                         dev_path,
                         id_path,
@@ -98,4 +90,33 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
 
     let value = serde_json::to_value(devices)?;
     Ok(NetworkResponse::Return(value))
+}
+
+/// Change the manage status for a network device.
+///
+/// For some applications that conflict with the network manager. we need to
+/// set the target device to be unmanaged status. e.g dpdk, or some network
+/// traffic trace softwares.
+pub async fn set_manage(device_name: String, is_managed: bool) -> Result<NetworkResponse> {
+    use nm::traits::ObjectExt;
+    let client = create_client().await?;
+    let device_interface = format!("{}.Device", *nm::DBUS_INTERFACE);
+    if let Some(device) = client.device_by_iface(&device_name) {
+        if let Some(device_object_path) = device.path().map(|x| x.to_string()) {
+            let managed_status = glib::Variant::from(is_managed);
+
+            client
+                .dbus_set_property_future(
+                    &device_object_path,
+                    &device_interface,
+                    "Managed",
+                    &managed_status,
+                    2000,
+                )
+                .await?;
+        }
+    } else {
+        bail!("The given network device is not found.")
+    }
+    Ok(NetworkResponse::Success)
 }

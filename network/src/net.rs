@@ -2,7 +2,7 @@
 //!
 //! The `net` moudule contains structures used to represent ip and route objects
 //! and they are the bridges between common rust objects and Glib objects.
-use crate::utils::{addrs_to_string, to_string, ipver_human};
+use crate::utils::{addrs_to_string, ipver_human, to_string};
 use eyre::Result;
 use ipnet::IpNet;
 use nm::{IPAddress, IPConfig as NMIPConfig, IPRoute, SettingIPConfig, SettingIPConfigExt};
@@ -88,10 +88,12 @@ impl TryFrom<NMIPConfig> for NetInfo {
     type Error = eyre::ErrReport;
     fn try_from(nm_ip_config: NMIPConfig) -> Result<Self> {
         let ipconfig: Option<NetInfo> = try {
-            let mut config = NetInfo::default();
+            let mut netinfo = NetInfo::default();
+
+            netinfo.method = "unknown".into();
 
             // Get all ip addresses in the connection
-            config.addresses = nm_ip_config
+            netinfo.addresses = nm_ip_config
                 .addresses()
                 .iter()
                 .filter_map(|x| {
@@ -104,7 +106,7 @@ impl TryFrom<NMIPConfig> for NetInfo {
                 })
                 .collect();
 
-            config.dns = nm_ip_config
+            netinfo.dns = nm_ip_config
                 .nameservers()
                 .iter()
                 .filter_map(|x| {
@@ -117,7 +119,7 @@ impl TryFrom<NMIPConfig> for NetInfo {
                 .collect();
 
             // Get the routes of the configuration
-            config.routes = nm_ip_config
+            netinfo.routes = nm_ip_config
                 .routes()
                 .iter()
                 .filter_map(|x| {
@@ -132,12 +134,12 @@ impl TryFrom<NMIPConfig> for NetInfo {
 
             // Get the gateway of the configuration
             if let Some(Ok(gateway)) = nm_ip_config.gateway().map(|x| x.to_string().parse()) {
-                config.gateway = Some(gateway);
+                netinfo.gateway = Some(gateway);
             }
-            config
+            netinfo
         };
-        if let Some(ip_config) = ipconfig {
-            Ok(ip_config)
+        if let Some(netinfo) = ipconfig {
+            Ok(netinfo)
         } else {
             bail!("Failed to")
         }

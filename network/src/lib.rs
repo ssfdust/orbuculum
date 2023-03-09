@@ -22,31 +22,14 @@ mod net;
 mod tokio_client;
 mod utils;
 
-pub use crate::tokio_client::send_command;
 pub use dispatch::connections::Connection;
 pub use dispatch::devices::NetDevice;
-use dispatch::dispatch_command_requests;
-use eyre::{Result, WrapErr};
-use glib::{MainContext, MainLoop};
 use serde_json::Value;
-use tokio::sync::oneshot;
 
 pub use net::{NetInfo, Route};
-
-type TokioResponder = oneshot::Sender<Result<NetworkResponse>>;
-
-/// The shared state for tokio application to conmuicate with glib maincontext.
-pub struct State {
-    glib_sender: glib::Sender<NetworkRequest>,
-}
-
-impl State {
-    pub fn new(sender: glib::Sender<NetworkRequest>) -> Self {
-        State {
-            glib_sender: sender,
-        }
-    }
-}
+pub use tokio_client::{
+    create_channel, run_network_manager_loop, send_command, NetworkRequest, State, TokioResponder,
+};
 
 /// The network command list
 /// provides all the command supported by the server.
@@ -59,20 +42,10 @@ pub enum NetworkCommand {
     GetIP4Config(String),
     GetIP6Config(String),
     // modify
+    SetManage(String, bool),
     DeleteConnection(String),
     UpdateIP4Config(String, NetInfo),
     UpdateIP6Config(String, NetInfo),
-}
-
-pub struct NetworkRequest {
-    responder: TokioResponder,
-    command: NetworkCommand,
-}
-
-impl NetworkRequest {
-    pub fn new(responder: TokioResponder, command: NetworkCommand) -> Self {
-        NetworkRequest { responder, command }
-    }
 }
 
 /// The network response list
@@ -92,23 +65,4 @@ impl NetworkResponse {
             _ => None,
         }
     }
-}
-
-/// The glib channel
-pub fn create_channel() -> (glib::Sender<NetworkRequest>, glib::Receiver<NetworkRequest>) {
-    glib::MainContext::channel(glib::PRIORITY_DEFAULT)
-}
-
-/// the main loop in glibc.
-pub fn run_network_manager_loop(glib_receiver: glib::Receiver<NetworkRequest>) {
-    let context = MainContext::new();
-    let loop_ = MainLoop::new(Some(&context), false);
-
-    context
-        .with_thread_default(|| {
-            glib_receiver.attach(None, dispatch_command_requests);
-
-            loop_.run();
-        })
-        .unwrap();
 }

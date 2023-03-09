@@ -12,7 +12,7 @@ sed -E 's|^[#]?baseurl=http.://download.example/pub|baseurl=https://mirrors.nju.
     -i.bak /etc/yum.repos.d/epel.repo
 dnf makecache
 dnf update -y
-dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc
+dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc llvm jq
 
 # Install rust
 runuser -u vagrant -- /home/vagrant/.cargo/bin/rustup default nightly

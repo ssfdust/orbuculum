@@ -19,7 +19,7 @@ pub mod devices;
 pub mod ipconfigs;
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{create_wired_connection, delete_connection, list_connections};
-use devices::list_ether_devices;
+use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
 use glib::MainContext;
 use ipconfigs::{get_ip_config, update_ip_config};
@@ -43,6 +43,9 @@ pub fn dispatch_command_requests(command_request: NetworkRequest) -> glib::Conti
         }
         NetworkCommand::UpdateIP6Config(conn, config) => {
             spawn(update_ip_config(conn, 6, config), responder)
+        }
+        NetworkCommand::SetManage(device_name, is_managed) => {
+            spawn(set_manage(device_name, is_managed), responder)
         }
     };
     glib::Continue(true)

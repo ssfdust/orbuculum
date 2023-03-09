@@ -28,5 +28,4 @@ ipnet = "2.7.0"
 libc = "0.2.139"
 serde_json = "1.0.93"
 serde = { version = "1.0.152", features = ["derive"] }
-udev = "0.7.0"
 regex = "1.7.1"

@@ -1,9 +1,9 @@
 /// serde related operations
 use ipnet::IpNet;
-use serde::ser::{SerializeSeq, Serializer, Error as SerErr};
-use std::string::ToString;
 use regex::Regex;
+use serde::ser::{Error as SerErr, SerializeSeq, Serializer};
 use std::fmt::Display;
+use std::string::ToString;
 
 pub fn to_string<T: ToString, S: Serializer>(data: &T, serializer: S) -> Result<S::Ok, S::Error> {
     serializer.serialize_str(&data.to_string())
@@ -32,11 +32,10 @@ pub fn addrs_to_string<S: Serializer>(
     seq.end()
 }
 
-
 /// Print NetworkManager
 pub fn nm_display<T: Display>(item: T) -> String {
     let res = format!("{}", item);
-    Regex::new(r"\w+::").and_then(|x| {
-        Ok(x.replace_all(&res, "").to_string())
-    }).unwrap()
+    Regex::new(r"\w+::")
+        .and_then(|x| Ok(x.replace_all(&res, "").to_string()))
+        .unwrap()
 }
