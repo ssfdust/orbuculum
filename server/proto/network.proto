@@ -1,21 +1,53 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
+
 package network;
 
-
 service Network {
-    rpc ListConnection (google.protobuf.Empty) returns (ConnectionReply);
+    rpc ListDevices (google.protobuf.Empty) returns (DevicesReply);
 }
 
-
-message ConnectionReplyBody {
-    string name = 1;
-    string uuid = 2;
-    string interface = 3;
-}
-
-message ConnectionReply {
+message DevicesReply {
     int32 code = 1;
     string msg = 2;
-    repeated ConnectionReplyBody data = 3;
+    repeated DevicesReplyBody data = 3;
+}
+
+message DevicesReplyBody {
+
+    message Routes {
+        string dest = 1;
+        uint32 family = 2;
+        uint32 metric = 3;
+        string next_hop = 4;
+    }
+
+    message Ip4info {
+        repeated string addresses = 1;
+        repeated string dns = 2;
+        string gateway = 3;
+        string method = 4;
+        repeated Routes routes = 5;
+    }
+
+    message Ip6info {
+        repeated string addresses = 1;
+        repeated string dns = 2;
+        string gateway = 3;
+        string method = 4;
+        repeated string routes = 5;
+    }
+
+    repeated string conn = 1;
+    string dev_path = 2;
+    string device_type = 3;
+    string id_path = 4;
+    Ip4info ip4info = 5;
+    Ip6info ip6info = 6;
+    bool is_managed = 7;
+    string mac = 8;
+    string name = 9;
+    string state = 10;
+    bool virtual = 11;
 }

@@ -8,6 +8,7 @@ use crate::utils::nm_display;
 use eyre::Result;
 use nm::ConnectionExt;
 use serde::Serialize;
+use std::sync::Arc;
 
 /// The network device structure
 #[derive(Clone, Default, Debug, Serialize)]
@@ -30,6 +31,7 @@ pub struct NetDevice {
     pub dev_path: Option<String>,
     /// The udev property `ID_PATH` of the network device
     pub id_path: Option<String>,
+    pub net_link_modes: Vec<String>,
 }
 
 /// List all interfaces with network manager connection names.
@@ -39,7 +41,7 @@ pub struct NetDevice {
 ///
 /// The returned result is not user friendly, high layer application should
 /// convert the result by themselfs.
-pub async fn list_ether_devices() -> Result<NetworkResponse> {
+pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<NetworkResponse> {
     use nm::DeviceExt;
     let client = create_client().await?;
 
@@ -69,6 +71,14 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
                         .unwrap_or(None);
                     let dev_path = device.udi().map(|x| x.to_string());
                     let id_path = device.path().map(|x| x.to_string());
+                    let net_link_modes: Vec<String> =
+                        link_modes[interface.to_string()].as_array().and_then(|x| {
+                            Some(
+                                x.iter()
+                                    .filter_map(|x| x.as_str().map(|x| x.to_string()))
+                                    .collect(),
+                            )
+                        }).unwrap_or(vec![]);
                     net_dev = NetDevice {
                         name: interface.to_string(),
                         ip4info,
@@ -81,6 +91,7 @@ pub async fn list_ether_devices() -> Result<NetworkResponse> {
                         device_type,
                         mac: mac.to_string(),
                         conn,
+                        net_link_modes,
                     }
                 }
             }

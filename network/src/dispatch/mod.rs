@@ -24,13 +24,18 @@ use eyre::{Result, WrapErr};
 use glib::MainContext;
 use ipconfigs::{get_ip_config, update_ip_config};
 use nm::Client;
+use serde_json::Value;
 use std::future::Future;
+use std::sync::Arc;
 
 /// Define the dispatch routers
-pub fn dispatch_command_requests(command_request: NetworkRequest) -> glib::Continue {
+pub fn dispatch_command_requests(
+    command_request: NetworkRequest,
+    link_modes: Arc<Value>,
+) -> glib::Continue {
     let NetworkRequest { responder, command } = command_request;
     match command {
-        NetworkCommand::ListDeivces => spawn(list_ether_devices(), responder),
+        NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
         NetworkCommand::CreateWiredConnection(conn, device) => {
             spawn(create_wired_connection(conn, device), responder)
         }

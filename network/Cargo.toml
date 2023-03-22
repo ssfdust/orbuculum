@@ -29,3 +29,5 @@ libc = "0.2.139"
 serde_json = "1.0.93"
 serde = { version = "1.0.152", features = ["derive"] }
 regex = "1.7.1"
+ethtool = "0.2.4"
+futures = "0.3.27"

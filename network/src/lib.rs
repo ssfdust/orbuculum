@@ -13,7 +13,6 @@
 //! ```rust
 //!
 //! ```
-
 #[macro_use]
 extern crate eyre;
 
@@ -22,6 +21,7 @@ mod net;
 mod tokio_client;
 mod utils;
 
+pub use crate::utils::gather_link_modes;
 pub use dispatch::connections::Connection;
 pub use dispatch::devices::NetDevice;
 use serde_json::Value;

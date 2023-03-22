@@ -13,11 +13,11 @@ use std::sync::Arc;
 #[rstest]
 #[tokio::test]
 /// All network devices are defined in Vagrantfile.
-async fn test_list_devices(start_instance: &Arc<State>) {
+async fn test_list_devices(#[future] start_instance: Arc<State>) {
     let mut enp1s4_exists = false;
     let mut enp1s5_exists = false;
 
-    let devices = send_command(Arc::clone(start_instance), NetworkCommand::ListDeivces)
+    let devices = send_command(Arc::clone(&start_instance.await), NetworkCommand::ListDeivces)
         .await
         .ok()
         .map(|x| x.into_value().unwrap())
@@ -87,8 +87,8 @@ async fn test_list_devices(start_instance: &Arc<State>) {
 
 #[rstest]
 #[tokio::test]
-async fn test_print_devices(start_instance: &Arc<State>) {
-    let devices = send_command(Arc::clone(start_instance), NetworkCommand::ListDeivces)
+async fn test_print_devices(#[future] start_instance: Arc<State>) {
+    let devices = send_command(Arc::clone(&start_instance.await), NetworkCommand::ListDeivces)
         .await
         .ok()
         .map(|x| x.into_value().unwrap())
@@ -98,7 +98,7 @@ async fn test_print_devices(start_instance: &Arc<State>) {
 
 #[rstest]
 #[tokio::test]
-/// To achieve the test being passed with a non-root user, you need to 
+/// To achieve the test being passed with a non-root user, you need to
 /// add custom policies to polkit, then restart polkit service.
 ///
 /// For example, file at /etc/polkit-1/rules.d/49-nm.rules
@@ -111,15 +111,16 @@ async fn test_print_devices(start_instance: &Arc<State>) {
 ///     }
 /// });
 /// ```
-async fn test_manage_devices(start_instance: &Arc<State>) {
+async fn test_manage_devices(#[future] start_instance: Arc<State>) {
     let interface = "enp1s4";
+    let state = Arc::clone(&start_instance.await);
     send_command(
-        Arc::clone(start_instance),
+        Arc::clone(&state),
         NetworkCommand::SetManage(interface.to_string(), false),
     )
     .await
     .unwrap();
-    let devices = send_command(Arc::clone(start_instance), NetworkCommand::ListDeivces)
+    let devices = send_command(Arc::clone(&state), NetworkCommand::ListDeivces)
         .await
         .ok()
         .map(|x| x.into_value().unwrap())
@@ -135,7 +136,7 @@ async fn test_manage_devices(start_instance: &Arc<State>) {
         _ => assert!(false),
     }
     send_command(
-        Arc::clone(start_instance),
+        Arc::clone(&state),
         NetworkCommand::SetManage(interface.to_string(), true),
     )
     .await
