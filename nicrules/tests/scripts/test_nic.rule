@@ -1,0 +1,13 @@
+fn get_nic_type_ord(device) {
+    let lower_net_link_modes = device["net_link_modes"].map(|x| x.to_lower());
+    if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+        return 10;
+    }
+    if device["dev_path"].contains("platform") {
+        return 2;
+    }
+    if device["device_type"] == "Ethernet" {
+        return 3;
+    }
+    return -1;
+}

@@ -13,6 +13,7 @@ use std::sync::Arc;
 /// The network device structure
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct NetDevice {
+    /// The network interface name, e.g. ens3, eth0
     pub name: String,
     pub mac: String,
     /// The network manager state
@@ -71,14 +72,16 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .unwrap_or(None);
                     let dev_path = device.udi().map(|x| x.to_string());
                     let id_path = device.path().map(|x| x.to_string());
-                    let net_link_modes: Vec<String> =
-                        link_modes[interface.to_string()].as_array().and_then(|x| {
+                    let net_link_modes: Vec<String> = link_modes[interface.to_string()]
+                        .as_array()
+                        .and_then(|x| {
                             Some(
                                 x.iter()
                                     .filter_map(|x| x.as_str().map(|x| x.to_string()))
                                     .collect(),
                             )
-                        }).unwrap_or(vec![]);
+                        })
+                        .unwrap_or(vec![]);
                     net_dev = NetDevice {
                         name: interface.to_string(),
                         ip4info,
@@ -111,7 +114,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
 pub async fn set_manage(device_name: String, is_managed: bool) -> Result<NetworkResponse> {
     use nm::traits::ObjectExt;
     let client = create_client().await?;
-    let device_interface = format!("{}.Device", *nm::DBUS_INTERFACE);
+    let device_interface = format!("{}.Device", nm::DBUS_INTERFACE);
     if let Some(device) = client.device_by_iface(&device_name) {
         if let Some(device_object_path) = device.path().map(|x| x.to_string()) {
             let managed_status = glib::Variant::from(is_managed);

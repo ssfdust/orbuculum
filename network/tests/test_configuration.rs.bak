@@ -30,6 +30,7 @@ async fn test_ip_configuration(start_instance: &Arc<State>) {
     }
 }
 
+/*
 #[rstest]
 #[tokio::test]
 async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
@@ -114,3 +115,4 @@ async fn test_modify_ip_configuration(start_instance: &Arc<State>) {
         }
     }
 }
+*/

@@ -39,13 +39,9 @@ pub enum NetworkCommand {
     ListDeivces,
     CreateWiredConnection(String, String),
     ListConnections,
-    GetIP4Config(String),
-    GetIP6Config(String),
     // modify
     SetManage(String, bool),
     DeleteConnection(String),
-    UpdateIP4Config(String, NetInfo),
-    UpdateIP6Config(String, NetInfo),
 }
 
 /// The network response list
@@ -53,7 +49,6 @@ pub enum NetworkCommand {
 pub enum NetworkResponse {
     Return(Value),
     ListConnection(Vec<Connection>),
-    IP(Option<NetInfo>),
     Success,
     Failed,
 }

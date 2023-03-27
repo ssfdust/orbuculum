@@ -7,25 +7,43 @@
 //! - list_wired_connection
 //! - delete_connection
 use super::{create_client, NetworkResponse};
+use crate::net::NetInfo;
 use eyre::Result;
 use glib::future_with_timeout;
+use ipnet::IpNet;
+use libc::{AF_INET, AF_INET6};
 use nm::{
-    ConnectionExt, SettingConnection, SettingWired, SimpleConnection, SETTING_WIRED_SETTING_NAME,
+    ConnectionExt, IPAddress, SettingConnection, SettingIP4Config, SettingIP6Config,
+    SettingIPConfig, SettingIPConfigExt, SettingWired, SimpleConnection,
+    SETTING_WIRED_SETTING_NAME,
 };
+use serde::Serialize;
+use std::boxed::Box;
 
 /// The simplified connection struct
+#[derive(Serialize)]
 pub struct Connection {
     pub name: String,
     pub uuid: String,
     pub interface: Option<String>,
+    pub ip4config: NetInfo,
+    pub ip6config: NetInfo,
 }
 
 impl Connection {
-    fn new(name: String, uuid: String, interface: Option<String>) -> Self {
+    fn new(
+        name: String,
+        uuid: String,
+        interface: Option<String>,
+        ip4config: NetInfo,
+        ip6config: NetInfo,
+    ) -> Self {
         Self {
             name,
             uuid,
             interface,
+            ip4config,
+            ip6config,
         }
     }
 }
@@ -46,11 +64,11 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
     if device.contains(":") {
         let wired_settings = SettingWired::new();
         wired_settings.set_mac_address(Some(&device));
-        connection.add_setting(&wired_settings);
+        connection.add_setting(wired_settings);
     } else {
         s_connection.set_interface_name(Some(&device));
     }
-    connection.add_setting(&s_connection);
+    connection.add_setting(s_connection);
 
     if let Err(_) = future_with_timeout(std::time::Duration::from_millis(600), async {
         client
@@ -69,7 +87,7 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
 /// List all connections in NetworkManager.
 pub async fn list_connections() -> Result<NetworkResponse> {
     let client = create_client().await?;
-    let nm_connecionts = client
+    let nm_connecionts: Vec<Connection> = client
         .connections()
         .iter()
         .filter_map(|x| {
@@ -77,20 +95,25 @@ pub async fn list_connections() -> Result<NetworkResponse> {
             if let Some(name) = x.id() {
                 if let Some(uuid) = x.uuid() {
                     if let Some(interface) = x.interface_name() {
-                        connection = Some(Connection::new(
-                            name.to_string(),
-                            uuid.to_string(),
-                            Some(interface.to_string()),
-                        ))
-                    } else {
-                        connection = Some(Connection::new(name.to_string(), uuid.to_string(), None))
+                        if let Ok(ip4config) = get_ip_config(x, 4) {
+                            if let Ok(ip6config) = get_ip_config(x, 6) {
+                                connection = Some(Connection::new(
+                                    name.to_string(),
+                                    uuid.to_string(),
+                                    Some(interface.to_string()),
+                                    ip4config,
+                                    ip6config,
+                                ))
+                            }
+                        }
                     }
                 }
             }
             connection
         })
         .collect();
-    Ok(NetworkResponse::ListConnection(nm_connecionts))
+    let nm_connecionts = serde_json::to_value(nm_connecionts)?;
+    Ok(NetworkResponse::Return(nm_connecionts))
 }
 
 /// Delete connections by name, this function will delete all the connections
@@ -113,5 +136,88 @@ pub async fn delete_connection(conn_name: String) -> Result<NetworkResponse> {
     for conn in nm_connecionts {
         conn.delete_future().await?
     }
+    Ok(NetworkResponse::Success)
+}
+
+fn ipnet2ipaddr(ipnet: IpNet) -> Result<IPAddress> {
+    let ipaddress: IPAddress;
+    match ipnet {
+        IpNet::V4(v4) => {
+            ipaddress = IPAddress::new(AF_INET, &v4.addr().to_string(), v4.prefix_len() as u32)?;
+        }
+        IpNet::V6(v6) => {
+            ipaddress = IPAddress::new(AF_INET6, &v6.addr().to_string(), v6.prefix_len() as u32)?;
+        }
+    }
+    Ok(ipaddress)
+}
+
+/// Get the configuration via connection name and ip family
+fn get_ip_config(connection: &nm::RemoteConnection, family: i32) -> Result<NetInfo> {
+    if family == 4 {
+        if let Some(setting_ip4_config) = connection
+            .setting_ip4_config()
+            .map(|x| <SettingIP4Config as Into<SettingIPConfig>>::into(x))
+        {
+            NetInfo::try_from(setting_ip4_config)
+        } else {
+            bail!("Failed to get ipv4 config")
+        }
+    } else {
+        if let Some(setting_ip6_config) = connection
+            .setting_ip6_config()
+            .map(|x| <SettingIP6Config as Into<SettingIPConfig>>::into(x))
+        {
+            NetInfo::try_from(setting_ip6_config)
+        } else {
+            bail!("Failed to get ipv6 config")
+        }
+    }
+}
+
+/// Update the settings of IP configuration
+pub async fn update_ip_config(
+    conn_name: String,
+    family: i32,
+    config: NetInfo,
+) -> Result<NetworkResponse> {
+    let client = create_client().await?;
+    let _conn: Option<nm::RemoteConnection> = try {
+        let connection: nm::RemoteConnection = client.connection_by_id(&conn_name)?;
+        let ipconfig: SettingIPConfig;
+
+        // Parser configuration
+        if family == 4 {
+            ipconfig = connection.setting_ip4_config().map(|x| x.into())?;
+        } else {
+            ipconfig = connection.setting_ip6_config().map(|x| x.into())?;
+        }
+
+        ipconfig.set_method(Some(&config.method));
+        ipconfig.set_gateway(
+            config
+                .gateway
+                .map(|x| &*Box::leak(x.to_string().into_boxed_str())),
+        );
+
+        ipconfig.clear_addresses();
+        for address in config.addresses {
+            ipconfig.add_address(&ipnet2ipaddr(address).ok()?);
+        }
+
+        ipconfig.clear_dns();
+
+        for dns in config.dns {
+            ipconfig.add_dns(&dns.to_string());
+        }
+
+        ipconfig.clear_routes();
+        for route in config.routes {
+            ipconfig.add_route(&route.try_into().ok()?);
+        }
+
+        connection.commit_changes_future(true).await.unwrap();
+        connection
+    };
     Ok(NetworkResponse::Success)
 }

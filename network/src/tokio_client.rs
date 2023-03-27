@@ -54,7 +54,7 @@ pub async fn send_command(state: Arc<State>, command: NetworkCommand) -> Result<
 
 /// The glib channel
 pub fn create_channel() -> (glib::Sender<NetworkRequest>, glib::Receiver<NetworkRequest>) {
-    glib::MainContext::channel(glib::PRIORITY_DEFAULT)
+    glib::MainContext::channel(glib::Priority::default())
 }
 
 /// the main loop in glibc.

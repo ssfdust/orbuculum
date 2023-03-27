@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/wrappers.proto";
 
 package network;
 
@@ -15,39 +16,32 @@ message DevicesReply {
 }
 
 message DevicesReplyBody {
-
-    message Routes {
-        string dest = 1;
-        uint32 family = 2;
-        uint32 metric = 3;
-        string next_hop = 4;
-    }
-
-    message Ip4info {
-        repeated string addresses = 1;
-        repeated string dns = 2;
-        string gateway = 3;
-        string method = 4;
-        repeated Routes routes = 5;
-    }
-
-    message Ip6info {
-        repeated string addresses = 1;
-        repeated string dns = 2;
-        string gateway = 3;
-        string method = 4;
-        repeated string routes = 5;
-    }
-
     repeated string conn = 1;
-    string dev_path = 2;
-    string device_type = 3;
-    string id_path = 4;
-    Ip4info ip4info = 5;
-    Ip6info ip6info = 6;
+    google.protobuf.StringValue dev_path = 2;
+    google.protobuf.StringValue device_type = 3;
+    google.protobuf.StringValue id_path = 4;
+    Netinfo ip4info = 5;
+    Netinfo ip6info = 6;
     bool is_managed = 7;
     string mac = 8;
     string name = 9;
     string state = 10;
     bool virtual = 11;
+    repeated string net_link_modes = 12;
+}
+
+message Routes {
+    string dest = 1;
+    uint32 family = 2;
+    uint32 metric = 3;
+    google.protobuf.StringValue next_hop = 4;
+}
+
+
+message Netinfo {
+    repeated string addresses = 1;
+    repeated string dns = 2;
+    google.protobuf.StringValue gateway = 3;
+    google.protobuf.StringValue method = 4;
+    repeated Routes routes = 5;
 }

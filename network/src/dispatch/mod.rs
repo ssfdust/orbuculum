@@ -22,7 +22,6 @@ use connections::{create_wired_connection, delete_connection, list_connections};
 use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
 use glib::MainContext;
-use ipconfigs::{get_ip_config, update_ip_config};
 use nm::Client;
 use serde_json::Value;
 use std::future::Future;
@@ -40,15 +39,7 @@ pub fn dispatch_command_requests(
             spawn(create_wired_connection(conn, device), responder)
         }
         NetworkCommand::ListConnections => spawn(list_connections(), responder),
-        NetworkCommand::GetIP4Config(conn) => spawn(get_ip_config(conn, 4), responder),
-        NetworkCommand::GetIP6Config(conn) => spawn(get_ip_config(conn, 6), responder),
         NetworkCommand::DeleteConnection(conn) => spawn(delete_connection(conn), responder),
-        NetworkCommand::UpdateIP4Config(conn, config) => {
-            spawn(update_ip_config(conn, 4, config), responder)
-        }
-        NetworkCommand::UpdateIP6Config(conn, config) => {
-            spawn(update_ip_config(conn, 6, config), responder)
-        }
         NetworkCommand::SetManage(device_name, is_managed) => {
             spawn(set_manage(device_name, is_managed), responder)
         }

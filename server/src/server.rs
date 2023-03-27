@@ -4,19 +4,19 @@
 //! We create the `GlibStateLayer` layer, which share the `GlibStateMiddleware`
 //! with the server.
 
-use std::sync::Arc;
 use network::State;
+use std::sync::Arc;
 
-use super::{NetworkServer, NetworkService};
-use hyper::Body;
-use tokio::macros::support::Future;
-use tonic::{body::BoxBody, transport::Server};
+use super::{network_grpc::NETWROK_FILE_DESCRIPTOR_SET, NetworkServer, NetworkService};
 use eyre::Result;
-use tower::{Layer, Service};
+use hyper::Body;
 use std::{
     task::{Context, Poll},
     time::Duration,
 };
+use tokio::macros::support::Future;
+use tonic::{body::BoxBody, transport::Server};
+use tower::{Layer, Service};
 
 /// Before creating the server instance, we have to initilize the shared state
 /// between the gio thread and the tonic thread, and pass the shared state to
@@ -25,6 +25,10 @@ pub fn create_server(
     shared_state: Arc<State>,
 ) -> impl Future<Output = Result<(), tonic::transport::Error>> {
     let addr = "127.0.0.1:50051".parse().unwrap();
+    let reflection_service = tonic_reflection::server::Builder::configure()
+        .register_encoded_file_descriptor_set(NETWROK_FILE_DESCRIPTOR_SET)
+        .build()
+        .unwrap();
     let network_service = NetworkService::default();
     let svc = NetworkServer::new(network_service);
     let layer = tower::ServiceBuilder::new()
@@ -32,7 +36,11 @@ pub fn create_server(
         .layer(GlibStateLayer::new(shared_state))
         .into_inner();
 
-    Server::builder().layer(layer).add_service(svc).serve(addr)
+    Server::builder()
+        .layer(layer)
+        .add_service(svc)
+        .add_service(reflection_service)
+        .serve(addr)
 }
 
 #[derive(Clone)]
@@ -62,7 +70,6 @@ struct GlibStateMiddleware<S> {
     inner: S,
     ref_state: Arc<State>,
 }
-
 
 impl<S> Service<hyper::Request<Body>> for GlibStateMiddleware<S>
 where

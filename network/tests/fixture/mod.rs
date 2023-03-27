@@ -7,7 +7,8 @@ use std::thread;
 pub async fn start_instance() -> Arc<State> {
     let (glib_sender, glib_receiver) = create_channel();
     let nic_linkmodes = Arc::new(
-        gather_link_modes(None).await
+        gather_link_modes(None)
+            .await
             .expect("Failed to gather nic_linkmodes, please check your permissions."),
     );
     thread::spawn(move || {

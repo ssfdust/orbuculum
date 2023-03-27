@@ -17,11 +17,14 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
     let mut enp1s4_exists = false;
     let mut enp1s5_exists = false;
 
-    let devices = send_command(Arc::clone(&start_instance.await), NetworkCommand::ListDeivces)
-        .await
-        .ok()
-        .map(|x| x.into_value().unwrap())
-        .unwrap();
+    let devices = send_command(
+        Arc::clone(&start_instance.await),
+        NetworkCommand::ListDeivces,
+    )
+    .await
+    .ok()
+    .map(|x| x.into_value().unwrap())
+    .unwrap();
     match devices {
         Value::Array(items) => {
             for item in items {
@@ -88,11 +91,14 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
 #[rstest]
 #[tokio::test]
 async fn test_print_devices(#[future] start_instance: Arc<State>) {
-    let devices = send_command(Arc::clone(&start_instance.await), NetworkCommand::ListDeivces)
-        .await
-        .ok()
-        .map(|x| x.into_value().unwrap())
-        .unwrap();
+    let devices = send_command(
+        Arc::clone(&start_instance.await),
+        NetworkCommand::ListDeivces,
+    )
+    .await
+    .ok()
+    .map(|x| x.into_value().unwrap())
+    .unwrap();
     println!("{}", serde_json::to_string_pretty(&devices).unwrap());
 }
 
