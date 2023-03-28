@@ -59,7 +59,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                     let conn = device
                         .available_connections()
                         .into_iter()
-                        .map(|x| x.id().map(|x| x.to_string()))
+                        .map(|x| x.uuid().map(|x| x.to_string()))
                         .filter_map(|x| x)
                         .collect();
                     let ip4info = device

@@ -1,13 +1,26 @@
-fn get_nic_type_ord(device) {
-    let lower_net_link_modes = device["net_link_modes"].map(|x| x.to_lower());
+fn insert_nic_type_ord(device) {
+    let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
+    let type_ord = -1;
     if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
-        return 10;
+        type_ord = 10;
     }
-    if device["dev_path"].contains("platform") {
-        return 2;
+    else if device.dev_path.contains("platform") {
+        type_ord = 2;
     }
-    if device["device_type"] == "Ethernet" {
-        return 3;
+    else if device.device_type == "Ethernet" {
+        type_ord = 3;
     }
-    return -1;
+    device["type_ord"] = type_ord;
+    return device;
+}
+
+fn modify_connection_names(devices, device_type) {
+    let new_devices = [];
+    if device_type == "Ethernet" {
+        for (device, idx) in devices {
+            device["con_name"] = "eth" + idx;
+            new_devices.push(device);
+        }
+    }
+    return new_devices;
 }

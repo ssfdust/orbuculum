@@ -1,9 +1,9 @@
-use eyre::bail;
 use network::{
     create_channel, gather_link_modes, run_network_manager_loop, send_command, NetworkCommand,
     State,
 };
-use nicrules::get_nic_ord_types;
+use nicrules::{insert_device_con_names, sort_devices};
+use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 use std::thread;
@@ -20,36 +20,59 @@ async fn main() {
     thread::spawn(move || {
         run_network_manager_loop(glib_receiver, arc_link_modes);
     });
+
     let shared_state = Arc::new(State::new(glib_sender));
     let mut devices = send_command(shared_state, NetworkCommand::ListDeivces)
         .await
         .and_then(|x| Ok(x.into_value().unwrap()))
         .unwrap();
-    if let Some(devices) = devices.as_array_mut() {
-        devices.sort_by(|device_a, device_b| {
-            match get_nic_ord_types(&nicrule_file, device_a).and_then(|device_ord_type_a| {
-                get_nic_ord_types(&nicrule_file, device_b).and_then(|device_ord_type_b| {
-                    if device_ord_type_a != device_ord_type_b {
-                        Ok(device_ord_type_a.cmp(&device_ord_type_b))
-                    } else {
-                        bail!("The ord type is the same.")
-                    }
-                })
-            }) {
-                Ok(ord) => ord,
-                _ => {
-                    let id_path_a = device_a["id_path"].as_str().unwrap_or("");
-                    let id_path_b = device_b["id_path"].as_str().unwrap_or("");
-                    id_path_a.cmp(id_path_b)
-                }
-            }
-        });
+
+    if let Some(devices) = sort_devices(&nicrule_file, &mut devices) {
         for (idx, device) in devices.iter().enumerate() {
             if let Some(device_name) = device["name"].as_str() {
-                let ord_type = get_nic_ord_types(&nicrule_file, device)
-                    .expect("Error when run the rule script.");
-                println!("Index: {}, Interface name: {}, Type Order: {}", idx, device_name, ord_type);
+                let ord_type = device["type_ord"]
+                    .as_i64()
+                    .expect("type_ord must be a number");
+                println!("==================================================");
+                println!("Origin: {}", serde_json::to_string_pretty(device).unwrap());
+                println!(
+                    "Index: {}, Interface name: {}, Type Order: {}",
+                    idx, device_name, ord_type
+                );
+                println!("==================================================\n");
             }
-        };
+        }
+        let mut groups: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+        for device in devices.iter() {
+            if let Some(value) = device.get("device_type") {
+                let entry = groups
+                    .entry(value.as_str().map(|x| x.to_string()).unwrap())
+                    .or_default();
+                entry.push(device.clone());
+            }
+        }
+        for (key, items) in groups.iter() {
+            serde_json::to_value(&items).unwrap();
+            println!("Key: {}, Count Of Items: {}", key, items.len());
+        }
+        println!("==================================================\n");
+        let devices = insert_device_con_names(&nicrule_file, &devices).unwrap();
+        println!("Final Result:");
+        for device in devices {
+            if let Some(conn) = device.get("con_name") {
+                if let Some(interface) = device.get("name") {
+                    let device_type = device
+                        .get("device_type")
+                        .map(|x| x.as_str().unwrap())
+                        .unwrap();
+                    println!(
+                        "Device Type: {}, Interface Name: {}, Connection: {}",
+                        device_type,
+                        interface.as_str().map(|x| x.to_string()).unwrap(),
+                        conn.as_str().map(|x| x.to_string()).unwrap()
+                    );
+                }
+            }
+        }
     };
 }
