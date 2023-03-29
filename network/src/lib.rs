@@ -41,6 +41,7 @@ pub enum NetworkCommand {
     ListConnections,
     // modify
     SetManage(String, bool),
+    RenameConnection(String, String),
     DeleteConnection(String),
 }
 

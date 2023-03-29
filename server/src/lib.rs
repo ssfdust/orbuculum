@@ -3,6 +3,7 @@ extern crate eyre;
 mod decoder;
 mod server;
 mod services;
+mod initilize;
 pub use server::create_server;
 use services::network::NetworkService;
 

@@ -75,8 +75,10 @@ impl<'a> SerdeRhaiParser<'a> {
 /// object mapping argument and returns the object mapping which contains the
 /// `type_ord` key corresponding to the number type.
 pub fn insert_nic_ord_types<'a>(script_path: &str, devices: &'a Value) -> Result<Vec<Value>> {
+    // Read script from script path
     let script_path = Path::new(script_path);
     let script = std::fs::read_to_string(&script_path)?;
+
     let mut new_devices = Value::Array(vec![]);
     let new_devices_arr = new_devices.as_array_mut().unwrap();
     let devices_arr = devices.as_array().unwrap();
@@ -89,12 +91,21 @@ pub fn insert_nic_ord_types<'a>(script_path: &str, devices: &'a Value) -> Result
     Ok(new_devices_arr.to_vec())
 }
 
+/// Insert desired connection name into the device information
+/// The rules are defined from `modify_connection_names` function.
+/// We will group the devices by their device type, and pass the results
+/// of each group to the `modify_connection_names` in script. Finally,
+/// returns a single array of modified device information.
 pub fn insert_device_con_names(script_path: &str, devices: &Vec<Value>) -> Result<Vec<Value>> {
+    // Read script from script path
     let script_path = Path::new(script_path);
     let script = std::fs::read_to_string(&script_path)?;
+
     let mut groups: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
     let mut new_devices = Value::Array(vec![]);
     let new_devices_arr = new_devices.as_array_mut().unwrap();
+
+    // Group devices by their device type
     for device in devices {
         if let Some(value) = device.get("device_type") {
             let entry = groups
@@ -103,7 +114,9 @@ pub fn insert_device_con_names(script_path: &str, devices: &Vec<Value>) -> Resul
             entry.push(device.clone());
         }
     }
-    let parser = SerdeRhaiParser::new(&script, "modify_connection_names");
+
+    // Call modify_connection_names from script
+    let parser = SerdeRhaiParser::new(&script, "modify_connections");
     for (key, items) in groups.iter() {
         let json_val = serde_json::to_value(&items)?;
         let ret = parser.parser_two_args(&json_val, key)?;
@@ -112,13 +125,17 @@ pub fn insert_device_con_names(script_path: &str, devices: &Vec<Value>) -> Resul
             new_devices_arr.push(item.clone())
         }
     }
+
     Ok(new_devices_arr.to_vec())
 }
 
-pub fn get_deseird_devices(script_path: &str, devices: &Value) -> Result<Vec<Value>> {
-    let devices = insert_nic_ord_types(script_path, devices)?;
-    let devices = insert_device_con_names(script_path, &devices)?;
-    Ok(devices)
+pub fn get_desired_devices(script_path: &str, devices: &Value) -> Result<Vec<Value>> {
+    if let Some(sorted_devices) = sort_devices(script_path, devices) {
+        let devices = insert_device_con_names(script_path, &sorted_devices)?;
+        Ok(devices)
+    } else {
+        bail!("Failed to sort devices with script")
+    }
 }
 
 /// Drop the useless ip information and convert the null value to empty string

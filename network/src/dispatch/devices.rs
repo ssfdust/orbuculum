@@ -15,6 +15,8 @@ use std::sync::Arc;
 pub struct NetDevice {
     /// The network interface name, e.g. ens3, eth0
     pub name: String,
+    /// The first connection related to the network card would be the conn_name
+    pub conn_name: Option<String>,
     pub mac: String,
     /// The network manager state
     pub state: String,
@@ -62,6 +64,12 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .map(|x| x.uuid().map(|x| x.to_string()))
                         .filter_map(|x| x)
                         .collect();
+                    let conn_name = device
+                        .available_connections()
+                        .into_iter()
+                        .map(|x| x.id().map(|x| x.to_string()))
+                        .next()
+                        .unwrap_or(None);
                     let ip4info = device
                         .ip4_config()
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())
@@ -84,6 +92,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .unwrap_or(vec![]);
                     net_dev = NetDevice {
                         name: interface.to_string(),
+                        conn_name,
                         ip4info,
                         state,
                         r#virtual: device.is_software(),

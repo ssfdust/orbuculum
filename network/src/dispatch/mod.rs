@@ -18,7 +18,9 @@ pub mod connections;
 pub mod devices;
 pub mod ipconfigs;
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
-use connections::{create_wired_connection, delete_connection, list_connections};
+use connections::{
+    create_wired_connection, delete_connection, list_connections, rename_connection,
+};
 use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
 use glib::MainContext;
@@ -35,6 +37,9 @@ pub fn dispatch_command_requests(
     let NetworkRequest { responder, command } = command_request;
     match command {
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
+        NetworkCommand::RenameConnection(uuid, new_name) => {
+            spawn(rename_connection(uuid, new_name), responder)
+        }
         NetworkCommand::CreateWiredConnection(conn, device) => {
             spawn(create_wired_connection(conn, device), responder)
         }

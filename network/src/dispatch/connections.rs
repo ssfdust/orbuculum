@@ -26,8 +26,8 @@ pub struct Connection {
     pub name: String,
     pub uuid: String,
     pub interface: Option<String>,
-    pub ip4config: NetInfo,
-    pub ip6config: NetInfo,
+    pub ip4info: NetInfo,
+    pub ip6info: NetInfo,
 }
 
 impl Connection {
@@ -35,17 +35,33 @@ impl Connection {
         name: String,
         uuid: String,
         interface: Option<String>,
-        ip4config: NetInfo,
-        ip6config: NetInfo,
+        ip4info: NetInfo,
+        ip6info: NetInfo,
     ) -> Self {
         Self {
             name,
             uuid,
             interface,
-            ip4config,
-            ip6config,
+            ip4info,
+            ip6info,
         }
     }
+}
+
+/// Rename a network connection with the UUID
+pub async fn rename_connection(conn_uuid: String, new_name: String) -> Result<NetworkResponse> {
+    let client = create_client().await?;
+    match client.connection_by_uuid(&conn_uuid) {
+        Some(connection) => {
+            let setting = connection
+                .setting_connection()
+                .expect("Failed to get connection setting");
+            setting.set_id(Some(&new_name));
+            connection.commit_changes_future(true).await?;
+        }
+        _ => bail!("Uuid {} not found", conn_uuid),
+    }
+    Ok(NetworkResponse::Success)
 }
 
 /// Create a new connection via `Connection Name` and `Device Name`
@@ -57,6 +73,7 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
 
     let connection = SimpleConnection::new();
     let s_connection = SettingConnection::new();
+    let mut uuid = String::new();
 
     s_connection.set_type(Some(&SETTING_WIRED_SETTING_NAME));
     s_connection.set_id(Some(&conn_name));
@@ -70,18 +87,20 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
     }
     connection.add_setting(s_connection);
 
-    if let Err(_) = future_with_timeout(std::time::Duration::from_millis(600), async {
-        client
-            .add_connection_future(&connection, true)
-            .await
-            .unwrap();
+    match future_with_timeout(std::time::Duration::from_millis(600), async {
+        client.add_connection_future(&connection, true).await
     })
     .await
     {
-        println!("add connection {} timeout", conn_name);
+        Ok(Ok(connection)) => {
+            uuid = connection.uuid().map(|x| x.to_string()).unwrap_or(uuid);
+        }
+        _ => eprintln!("add connection {} timeout", conn_name),
     }
 
-    Ok(NetworkResponse::Success)
+    Ok(NetworkResponse::Return(
+        serde_json::to_value(&uuid).unwrap(),
+    ))
 }
 
 /// List all connections in NetworkManager.

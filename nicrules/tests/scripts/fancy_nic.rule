@@ -1,0 +1,35 @@
+fn insert_nic_type_ord(device) {
+    let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
+    let type_ord = -1;
+    if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+        type_ord = 10;
+    }
+    else if device.dev_path.contains("platform") {
+        type_ord = 2;
+    }
+    else if device.device_type == "Ethernet" {
+        type_ord = 3;
+    }
+    device["type_ord"] = type_ord;
+    return device;
+}
+
+fn modify_connection_names(devices, device_type) {
+    let new_devices = [];
+    let fibre_count = 0;
+    let tp_count = 0;
+    if device_type == "Ethernet" {
+        for (device, idx) in devices {
+            if device["type_ord"] == 10 {
+                device["con_name"] = "光纤网卡" + (fibre_count + 1);
+                new_devices.push(device);
+                fibre_count += 1;
+            } else {
+                device["con_name"] = "板载网卡" + (tp_count + 1);
+                new_devices.push(device);
+                tp_count += 1;
+            }
+        }
+    }
+    return new_devices;
+}

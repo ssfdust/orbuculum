@@ -90,20 +90,6 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
 
 #[rstest]
 #[tokio::test]
-async fn test_print_devices(#[future] start_instance: Arc<State>) {
-    let devices = send_command(
-        Arc::clone(&start_instance.await),
-        NetworkCommand::ListDeivces,
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    println!("{}", serde_json::to_string_pretty(&devices).unwrap());
-}
-
-#[rstest]
-#[tokio::test]
 /// To achieve the test being passed with a non-root user, you need to
 /// add custom policies to polkit, then restart polkit service.
 ///

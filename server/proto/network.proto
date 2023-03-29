@@ -7,12 +7,27 @@ package network;
 
 service Network {
     rpc ListDevices (google.protobuf.Empty) returns (DevicesReply);
+    rpc ListConnections (google.protobuf.Empty) returns (ConnectionsReply);
 }
 
 message DevicesReply {
     int32 code = 1;
     string msg = 2;
     repeated DevicesReplyBody data = 3;
+}
+
+message ConnectionsReply {
+    int32 code = 1;
+    string msg = 2;
+    repeated ConnectionBody data = 3;
+}
+
+message ConnectionBody {
+    string name = 1;
+    string uuid = 2;
+    google.protobuf.StringValue interface = 3;
+    Netinfo ip4info = 4;
+    Netinfo ip6info = 5;
 }
 
 message DevicesReplyBody {
@@ -28,6 +43,7 @@ message DevicesReplyBody {
     string state = 10;
     bool virtual = 11;
     repeated string net_link_modes = 12;
+    google.protobuf.StringValue conn_name = 13;
 }
 
 message Routes {
