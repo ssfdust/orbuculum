@@ -22,7 +22,7 @@ pub struct NetDevice {
     /// The network interface name, e.g. ens3, eth0
     pub name: String,
     /// The first connection related to the network card would be the conn_name
-    pub connection: Option<ConnectionItem>,
+    pub connection: ConnectionItem,
     pub mac: String,
     /// The network manager state
     pub state: String,
@@ -76,7 +76,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         let id = x.id().map(|x| x.to_string());
                         let uuid = x.uuid().map(|x| x.to_string());
                         ConnectionItem {id, uuid}
-                    });
+                    }).unwrap_or_default();
                     let ip4info = device
                         .ip4_config()
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())
