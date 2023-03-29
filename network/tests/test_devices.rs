@@ -9,6 +9,7 @@ use network::{send_command, NetworkCommand, State};
 use rstest::rstest;
 use serde_json::Value;
 use std::sync::Arc;
+use std::process::Command;
 
 #[rstest]
 #[tokio::test]
@@ -16,7 +17,56 @@ use std::sync::Arc;
 async fn test_list_devices(#[future] start_instance: Arc<State>) {
     let mut enp1s4_exists = false;
     let mut enp1s5_exists = false;
-
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("add")
+        .arg("type")
+        .arg("ethernet")
+        .arg("ifname")
+        .arg("enp1s4")
+        .arg("con-name")
+        .arg("test-con-1")
+        .arg("ipv4.method")
+        .arg("disabled")
+        .arg("ipv6.method")
+        .arg("disabled")
+        .output()
+        .unwrap();
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("add")
+        .arg("type")
+        .arg("ethernet")
+        .arg("ifname")
+        .arg("enp1s4")
+        .arg("con-name")
+        .arg("test-con-2")
+        .arg("ipv4.method")
+        .arg("manual")
+        .arg("ipv4.addresses")
+        .arg("19.94.9.11/24")
+        .arg("ipv6.method")
+        .arg("disabled")
+        .output()
+        .unwrap();
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("up")
+        .arg("test-con-2")
+        .output()
+        .unwrap();
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("down")
+        .arg("test-con-2")
+        .output()
+        .unwrap();
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("up")
+        .arg("test-con-2")
+        .output()
+        .unwrap();
     let devices = send_command(
         Arc::clone(&start_instance.await),
         NetworkCommand::ListDeivces,
@@ -43,17 +93,20 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
                             )
                         })
                         .unwrap();
+                    let conn_name = item["connection"]["id"].as_str().unwrap();
                     assert!(ip4addrs.contains(&"19.94.9.11/24".to_string()));
                     assert!(item["conn"].as_array().unwrap().len() > 0);
                     assert!(item["dev_path"]
                         .as_str()
                         .map(|x| x.contains("0000:01:04.0"))
                         .unwrap());
+                    assert_eq!(conn_name, "test-con-2");
                     assert_eq!(item["virtual"].as_bool(), Some(false));
                     assert_eq!(item["mac"].as_str(), Some("52:54:5E:13:7F:43"));
                     assert_eq!(item["device_type"].as_str(), Some("Ethernet"));
                     assert_eq!(item["id_path"].as_str(), Some("pci-0000:01:04.0"));
                     assert_eq!(item["state"].as_str(), Some("Activated"));
+                    assert_eq!(item["driver"].as_str(), Some("virtio_net"));
                 }
                 if item["name"].as_str() == Some("enp1s5") {
                     enp1s5_exists = true;
@@ -79,6 +132,7 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
                     assert_eq!(item["state"].as_str(), Some("Activated"));
                     assert_eq!(item["device_type"].as_str(), Some("Ethernet"));
                     assert_eq!(item["id_path"].as_str(), Some("pci-0000:01:05.0"));
+                    assert_eq!(item["driver"].as_str(), Some("virtio_net"));
                 }
             }
         }
@@ -86,6 +140,13 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
     }
     assert!(enp1s4_exists);
     assert!(enp1s5_exists);
+    Command::new("nmcli")
+        .arg("connection")
+        .arg("delete")
+        .arg("test-con-1")
+        .arg("test-con-2")
+        .output()
+        .unwrap();
 }
 
 #[rstest]

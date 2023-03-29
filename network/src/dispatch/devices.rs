@@ -6,9 +6,15 @@ use super::{create_client, NetworkResponse};
 use crate::net::NetInfo;
 use crate::utils::nm_display;
 use eyre::Result;
-use nm::ConnectionExt;
+use nm::{ConnectionExt, ActiveConnectionExt};
 use serde::Serialize;
 use std::sync::Arc;
+
+#[derive(Clone, Default, Debug, Serialize)]
+pub struct ConnectionItem {
+    pub id: Option<String>,
+    pub uuid: Option<String>
+}
 
 /// The network device structure
 #[derive(Clone, Default, Debug, Serialize)]
@@ -16,7 +22,7 @@ pub struct NetDevice {
     /// The network interface name, e.g. ens3, eth0
     pub name: String,
     /// The first connection related to the network card would be the conn_name
-    pub conn_name: Option<String>,
+    pub connection: Option<ConnectionItem>,
     pub mac: String,
     /// The network manager state
     pub state: String,
@@ -26,6 +32,8 @@ pub struct NetDevice {
     pub r#virtual: bool,
     /// Whether the device is managed by NetworkManager
     pub is_managed: bool,
+    /// The network nic driver name
+    pub driver: Option<String>,
     pub ip4info: Option<NetInfo>,
     pub ip6info: Option<NetInfo>,
     /// all the connections related to the network device
@@ -64,12 +72,11 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .map(|x| x.uuid().map(|x| x.to_string()))
                         .filter_map(|x| x)
                         .collect();
-                    let conn_name = device
-                        .available_connections()
-                        .into_iter()
-                        .map(|x| x.id().map(|x| x.to_string()))
-                        .next()
-                        .unwrap_or(None);
+                    let connection = device.active_connection().map(|x| {
+                        let id = x.id().map(|x| x.to_string());
+                        let uuid = x.uuid().map(|x| x.to_string());
+                        ConnectionItem {id, uuid}
+                    });
                     let ip4info = device
                         .ip4_config()
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())
@@ -80,6 +87,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .unwrap_or(None);
                     let dev_path = device.udi().map(|x| x.to_string());
                     let id_path = device.path().map(|x| x.to_string());
+                    let driver = device.driver().map(|x| x.to_string());
                     let net_link_modes: Vec<String> = link_modes[interface.to_string()]
                         .as_array()
                         .and_then(|x| {
@@ -92,12 +100,13 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .unwrap_or(vec![]);
                     net_dev = NetDevice {
                         name: interface.to_string(),
-                        conn_name,
+                        connection,
                         ip4info,
                         state,
                         r#virtual: device.is_software(),
                         is_managed,
                         ip6info,
+                        driver,
                         dev_path,
                         id_path,
                         device_type,

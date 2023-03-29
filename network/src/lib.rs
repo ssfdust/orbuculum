@@ -39,6 +39,7 @@ pub enum NetworkCommand {
     ListDeivces,
     CreateWiredConnection(String, String),
     ListConnections,
+    GetConnection(String),
     // modify
     SetManage(String, bool),
     RenameConnection(String, String),

@@ -17,6 +17,8 @@
 pub mod connections;
 pub mod devices;
 pub mod ipconfigs;
+use self::connections::get_connection;
+
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{
     create_wired_connection, delete_connection, list_connections, rename_connection,
@@ -37,6 +39,7 @@ pub fn dispatch_command_requests(
     let NetworkRequest { responder, command } = command_request;
     match command {
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
+        NetworkCommand::GetConnection(uuid) => spawn(get_connection(uuid), responder),
         NetworkCommand::RenameConnection(uuid, new_name) => {
             spawn(rename_connection(uuid, new_name), responder)
         }

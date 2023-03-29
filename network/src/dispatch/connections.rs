@@ -46,6 +46,28 @@ impl Connection {
             ip6info,
         }
     }
+
+    fn from_nm_connection(nm_connection: &nm::RemoteConnection) -> Option<Self> {
+        let mut connection = None;
+        if let Some(name) = nm_connection.id() {
+            if let Some(uuid) = nm_connection.uuid() {
+                if let Some(interface) = nm_connection.interface_name() {
+                    if let Ok(ip4config) = get_ip_config(nm_connection, 4) {
+                        if let Ok(ip6config) = get_ip_config(nm_connection, 6) {
+                            connection = Some(Connection::new(
+                                name.to_string(),
+                                uuid.to_string(),
+                                Some(interface.to_string()),
+                                ip4config,
+                                ip6config,
+                            ))
+                        }
+                    }
+                }
+            }
+        }
+        connection
+    }
 }
 
 /// Rename a network connection with the UUID
@@ -109,30 +131,22 @@ pub async fn list_connections() -> Result<NetworkResponse> {
     let nm_connecionts: Vec<Connection> = client
         .connections()
         .iter()
-        .filter_map(|x| {
-            let mut connection = None;
-            if let Some(name) = x.id() {
-                if let Some(uuid) = x.uuid() {
-                    if let Some(interface) = x.interface_name() {
-                        if let Ok(ip4config) = get_ip_config(x, 4) {
-                            if let Ok(ip6config) = get_ip_config(x, 6) {
-                                connection = Some(Connection::new(
-                                    name.to_string(),
-                                    uuid.to_string(),
-                                    Some(interface.to_string()),
-                                    ip4config,
-                                    ip6config,
-                                ))
-                            }
-                        }
-                    }
-                }
-            }
-            connection
-        })
+        .filter_map(|x| Connection::from_nm_connection(x))
         .collect();
     let nm_connecionts = serde_json::to_value(nm_connecionts)?;
     Ok(NetworkResponse::Return(nm_connecionts))
+}
+
+
+/// Get a connection by connection uuid
+pub async fn get_connection(uuid: String) -> Result<NetworkResponse> {
+    let client = create_client().await?;
+    if let Some(Some(connection)) = client.connection_by_uuid(&uuid).map(|x| Connection::from_nm_connection(&x)) {
+        let connection = serde_json::to_value(&connection)?;
+        Ok(NetworkResponse::Return(connection))
+    } else {
+        bail!("Failed to get connection with uuid {}", uuid)
+    }
 }
 
 /// Delete connections by name, this function will delete all the connections
