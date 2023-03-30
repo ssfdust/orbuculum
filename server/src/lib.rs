@@ -13,4 +13,5 @@ pub mod network_grpc {
         tonic::include_file_descriptor_set!("network_descriptor");
 }
 use network_grpc::network_server::{Network, NetworkServer};
-use network_grpc::DevicesReply;
+pub use network_grpc::{DevicesReply, ConnectionsReply};
+pub use network_grpc::network_client::NetworkClient;

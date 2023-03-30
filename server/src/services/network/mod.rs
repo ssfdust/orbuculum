@@ -3,7 +3,7 @@ use crate::network_grpc::ConnectionsReply;
 use super::super::{DevicesReply, Network};
 use eyre::Result;
 use network::{send_command, NetworkCommand, State};
-use serde_json::Value;
+
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
 

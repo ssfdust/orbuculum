@@ -38,6 +38,7 @@ pub fn create_server(
 
     Server::builder()
         .layer(layer)
+        .accept_http1(true)
         .add_service(svc)
         .add_service(reflection_service)
         .serve(addr)

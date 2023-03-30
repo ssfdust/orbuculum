@@ -4,7 +4,8 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     tonic_build::configure()
         .build_server(true)
-        // .out_dir("src/network_grpc")  // you can change the generated code's location
+        .build_client(true)
+        // .out_dir("target/")  // you can change the generated code's location
         .type_attribute(
             "DevicesReply",
             "#[derive(serde::Deserialize,serde::Serialize)]",
