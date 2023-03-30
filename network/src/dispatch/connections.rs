@@ -13,7 +13,7 @@ use glib::future_with_timeout;
 use ipnet::IpNet;
 use libc::{AF_INET, AF_INET6};
 use nm::{
-    ConnectionExt, IPAddress, SettingConnection, SettingIP4Config, SettingIP6Config,
+    ConnectionExt, DeviceExt, IPAddress, SettingConnection, SettingIP4Config, SettingIP6Config,
     SettingIPConfig, SettingIPConfigExt, SettingWired, SimpleConnection,
     SETTING_WIRED_SETTING_NAME,
 };
@@ -26,6 +26,7 @@ pub struct Connection {
     pub name: String,
     pub uuid: String,
     pub interface: Option<String>,
+    pub mac: Option<String>,
     pub ip4info: NetInfo,
     pub ip6info: NetInfo,
 }
@@ -35,29 +36,38 @@ impl Connection {
         name: String,
         uuid: String,
         interface: Option<String>,
+        mac: Option<String>,
         ip4info: NetInfo,
         ip6info: NetInfo,
     ) -> Self {
         Self {
             name,
             uuid,
+            mac,
             interface,
             ip4info,
             ip6info,
         }
     }
 
-    fn from_nm_connection(nm_connection: &nm::RemoteConnection) -> Option<Self> {
+    fn from_nm_connection(
+        nm_connection: &nm::RemoteConnection,
+        client: &nm::Client,
+    ) -> Option<Self> {
         let mut connection = None;
         if let Some(name) = nm_connection.id() {
             if let Some(uuid) = nm_connection.uuid() {
                 if let Some(interface) = nm_connection.interface_name() {
                     if let Ok(ip4config) = get_ip_config(nm_connection, 4) {
                         if let Ok(ip6config) = get_ip_config(nm_connection, 6) {
+                            let mac = client
+                                .device_by_iface(&interface)
+                                .and_then(|x| x.hw_address().map(|x| x.to_string()));
                             connection = Some(Connection::new(
                                 name.to_string(),
                                 uuid.to_string(),
                                 Some(interface.to_string()),
+                                mac,
                                 ip4config,
                                 ip6config,
                             ))
@@ -131,17 +141,19 @@ pub async fn list_connections() -> Result<NetworkResponse> {
     let nm_connecionts: Vec<Connection> = client
         .connections()
         .iter()
-        .filter_map(|x| Connection::from_nm_connection(x))
+        .filter_map(|x| Connection::from_nm_connection(x, &client))
         .collect();
     let nm_connecionts = serde_json::to_value(nm_connecionts)?;
     Ok(NetworkResponse::Return(nm_connecionts))
 }
 
-
 /// Get a connection by connection uuid
 pub async fn get_connection(uuid: String) -> Result<NetworkResponse> {
     let client = create_client().await?;
-    if let Some(Some(connection)) = client.connection_by_uuid(&uuid).map(|x| Connection::from_nm_connection(&x)) {
+    if let Some(Some(connection)) = client
+        .connection_by_uuid(&uuid)
+        .map(|x| Connection::from_nm_connection(&x, &client))
+    {
         let connection = serde_json::to_value(&connection)?;
         Ok(NetworkResponse::Return(connection))
     } else {

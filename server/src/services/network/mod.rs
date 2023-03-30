@@ -1,6 +1,6 @@
 use crate::network_grpc::ConnectionsReply;
 
-use super::super::{DevicesReply, Network};
+use super::super::{ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
 use eyre::Result;
 use network::{send_command, NetworkCommand, State};
 
@@ -33,7 +33,38 @@ impl Network for NetworkService {
         Ok(resp)
     }
 
-    async fn list_connections(&self, request: Request<()>) -> Result<Response<ConnectionsReply>, Status> {
+    async fn get_connection_by_uuid(
+        &self,
+        request: Request<ConnectionUuidRequest>,
+    ) -> Result<Response<ConnectionReply>, Status> {
+        let shared_state = request.extensions().get::<Arc<State>>().unwrap();
+        let shared_state = Arc::clone(shared_state);
+        let uuid = request.into_inner().uuid;
+        let resp = send_command(
+            shared_state,
+            NetworkCommand::GetConnection(uuid.clone()),
+        )
+        .await
+        .and_then(|x| {
+            if let Some(connection) = x.into_value() {
+                let data = serde_json::from_value(connection).unwrap();
+                Ok(Response::new(ConnectionReply {
+                    code: 0,
+                    msg: "Sucessful".into(),
+                    data,
+                }))
+            } else {
+                bail!("Failed to get connection with uuid {}", uuid)
+            }
+        })
+        .unwrap();
+        Ok(resp)
+    }
+
+    async fn list_connections(
+        &self,
+        request: Request<()>,
+    ) -> Result<Response<ConnectionsReply>, Status> {
         let shared_state = request.extensions().get::<Arc<State>>().unwrap();
         let shared_state = Arc::clone(shared_state);
         let resp = send_command(shared_state, NetworkCommand::ListConnections)

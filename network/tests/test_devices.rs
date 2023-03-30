@@ -8,8 +8,8 @@ use fixture::start_instance;
 use network::{send_command, NetworkCommand, State};
 use rstest::rstest;
 use serde_json::Value;
-use std::sync::Arc;
 use std::process::Command;
+use std::sync::Arc;
 
 #[rstest]
 #[tokio::test]
@@ -17,50 +17,22 @@ use std::process::Command;
 async fn test_list_devices(#[future] start_instance: Arc<State>) {
     let mut enp1s4_exists = false;
     let mut enp1s5_exists = false;
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("add")
-        .arg("type")
-        .arg("ethernet")
-        .arg("ifname")
-        .arg("enp1s4")
-        .arg("con-name")
-        .arg("test-con-1")
-        .arg("ipv4.method")
-        .arg("disabled")
-        .arg("ipv6.method")
-        .arg("disabled")
+    Command::new("bash")
+        .arg("-c")
+        .arg("nmcli connection add type ethernet ifname enp1s4 con-name test-con-1 ipv4.method disabled ipv6.method disabled")
         .output()
         .unwrap();
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("add")
-        .arg("type")
-        .arg("ethernet")
-        .arg("ifname")
-        .arg("enp1s4")
-        .arg("con-name")
-        .arg("test-con-2")
-        .arg("ipv4.method")
-        .arg("manual")
-        .arg("ipv4.addresses")
-        .arg("19.94.9.11/24")
-        .arg("ipv6.method")
-        .arg("disabled")
+    Command::new("bash")
+        .arg("-c")
+        .arg("nmcli connection add type ethernet ifname enp1s4 con-name test-con-2 ipv4.method manual ipv4.addresses 19.94.9.11/24 ipv6.method disabled")
         .output()
         .unwrap();
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("up")
-        .arg("test-con-2")
+    Command::new("bash")
+        .arg("-c")
+        .arg("nmcli con d \"$(nmcli -t dev | awk -F: '/enp1s4/{print $4}')\"")
         .output()
         .unwrap();
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("down")
-        .arg("test-con-2")
-        .output()
-        .unwrap();
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
     Command::new("nmcli")
         .arg("connection")
         .arg("up")

@@ -6,14 +6,14 @@ use super::{create_client, NetworkResponse};
 use crate::net::NetInfo;
 use crate::utils::nm_display;
 use eyre::Result;
-use nm::{ConnectionExt, ActiveConnectionExt};
+use nm::{ActiveConnectionExt, ConnectionExt};
 use serde::Serialize;
 use std::sync::Arc;
 
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct ConnectionItem {
     pub id: Option<String>,
-    pub uuid: Option<String>
+    pub uuid: Option<String>,
 }
 
 /// The network device structure
@@ -45,6 +45,23 @@ pub struct NetDevice {
     pub net_link_modes: Vec<String>,
 }
 
+fn get_latest_connection(
+    connections: &mut Vec<nm::RemoteConnection>,
+) -> Option<&nm::RemoteConnection> {
+    connections.sort_by(|a, b| {
+        let ts_a = a
+            .setting_connection()
+            .map(|x| x.timestamp())
+            .unwrap_or(0u64);
+        let ts_b = b
+            .setting_connection()
+            .map(|x| x.timestamp())
+            .unwrap_or(0u64);
+        ts_b.cmp(&ts_a)
+    });
+    connections.get(0)
+}
+
 /// List all interfaces with network manager connection names.
 ///
 /// The function shows all information about the interfaces, including interface
@@ -72,11 +89,22 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .map(|x| x.uuid().map(|x| x.to_string()))
                         .filter_map(|x| x)
                         .collect();
-                    let connection = device.active_connection().map(|x| {
-                        let id = x.id().map(|x| x.to_string());
-                        let uuid = x.uuid().map(|x| x.to_string());
-                        ConnectionItem {id, uuid}
-                    }).unwrap_or_default();
+                    let connection = device
+                        .active_connection()
+                        .map(|x| {
+                            let id = x.id().map(|x| x.to_string());
+                            let uuid = x.uuid().map(|x| x.to_string());
+                            ConnectionItem { id, uuid }
+                        })
+                        .unwrap_or(
+                            get_latest_connection(&mut device.available_connections())
+                                .and_then(|y| {
+                                    let id = y.id().map(|x| x.to_string());
+                                    let uuid = y.uuid().map(|x| x.to_string());
+                                    Some(ConnectionItem { id, uuid })
+                                })
+                                .unwrap_or_default(),
+                        );
                     let ip4info = device
                         .ip4_config()
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())

@@ -8,12 +8,28 @@ package network;
 service Network {
     rpc ListDevices (google.protobuf.Empty) returns (DevicesReply);
     rpc ListConnections (google.protobuf.Empty) returns (ConnectionsReply);
+    rpc GetConnectionByUUID (ConnectionUUIDRequest) returns (ConnectionReply);
+}
+
+message ConnectionReply {
+    int32 code = 1;
+    string msg = 2;
+    ConnectionBody data = 3;
+}
+
+message ConnectionUUIDRequest {
+    string uuid = 1;
 }
 
 message DevicesReply {
     int32 code = 1;
     string msg = 2;
     repeated DevicesReplyBody data = 3;
+}
+
+message ConnectionItem {
+    google.protobuf.StringValue id = 1;
+    google.protobuf.StringValue uuid = 2;
 }
 
 message ConnectionsReply {
@@ -26,8 +42,9 @@ message ConnectionBody {
     string name = 1;
     string uuid = 2;
     google.protobuf.StringValue interface = 3;
-    Netinfo ip4info = 4;
-    Netinfo ip6info = 5;
+    google.protobuf.StringValue mac = 4;
+    Netinfo ip4info = 5;
+    Netinfo ip6info = 6;
 }
 
 message DevicesReplyBody {
@@ -44,6 +61,8 @@ message DevicesReplyBody {
     bool virtual = 11;
     repeated string net_link_modes = 12;
     google.protobuf.StringValue conn_name = 13;
+    google.protobuf.StringValue driver = 14;
+    ConnectionItem connection = 15;
 }
 
 message Routes {

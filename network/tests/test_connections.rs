@@ -110,3 +110,34 @@ async fn test_rename_connection(#[future] start_instance: Arc<State>) {
         .output()
         .unwrap();
 }
+
+#[rstest]
+#[tokio::test]
+async fn test_get_connection(#[future] start_instance: Arc<State>) {
+    let shared_state = Arc::clone(&start_instance.await);
+    let shared_state_clone = Arc::clone(&shared_state);
+    let shared_state_clone_1 = Arc::clone(&shared_state);
+    let connection_uuid = send_command(
+        shared_state,
+        NetworkCommand::CreateWiredConnection(
+            "my_unique_connection".to_string(),
+            "eth4".to_string(),
+        ),
+    )
+    .await
+    .ok()
+    .map(|x| x.into_value().unwrap())
+    .unwrap();
+    let connection_uuid = connection_uuid.as_str().unwrap();
+    let connection = send_command(
+        shared_state_clone,
+        NetworkCommand::GetConnection(connection_uuid.to_string()),
+    )
+    .await
+    .ok()
+    .map(|x| x.into_value().unwrap()).unwrap();
+    let got_uuid = connection["uuid"].as_str().unwrap();
+    assert_eq!(got_uuid, connection_uuid);
+    let clean_args = format!("nmcli connection delete {}", connection_uuid);
+    Command::new("bash").arg("-c").arg(&clean_args).output().unwrap();
+}

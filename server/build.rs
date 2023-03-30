@@ -16,8 +16,22 @@ fn main() {
         )
         .type_attribute("Routes", "#[derive(serde::Deserialize,serde::Serialize)]")
         .type_attribute("Netinfo", "#[derive(serde::Deserialize,serde::Serialize)]")
-        .type_attribute("ConnectionBody", "#[derive(serde::Deserialize,serde::Serialize)]")
-        .type_attribute("ConnectionsReply", "#[derive(serde::Deserialize,serde::Serialize)]")
+        .type_attribute(
+            "ConnectionBody",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
+        .type_attribute(
+            "ConnectionReply",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
+        .type_attribute(
+            "ConnectionsReply",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
+        .type_attribute(
+            "ConnectionItem",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
         .file_descriptor_set_path(out_dir.join("network_descriptor.bin"))
         .compile(
             &["proto/network.proto"],
