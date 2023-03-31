@@ -1,5 +1,5 @@
 /target
-*/target/
+crates/*/target/
 
 ### Tags ###
 # Ignore tags created by etags, ctags, gtags (GNU global) and cscope
