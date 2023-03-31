@@ -1,4 +1,4 @@
-use server::{NetworkClient, ConnectionUuidRequest};
+use orbuculum_grpc::{NetworkClient, ConnectionUuidRequest};
 use axum::{routing::get, extract::Path};
 use serde_json::Value;
 

@@ -1,6 +1,6 @@
 [package]
 name = "orbuculum-http"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,6 +10,6 @@ axum = "0.6.12"
 eyre = "0.6.8"
 serde = { version = "1.0.159", features = ["derive"] }
 serde_json = "1.0.95"
-server = { version = "0.1.0", path = "../server" }
+orbuculum-grpc = { version = "0.0.1", path = "../orbuculum-grpc" }
 tokio = "1.27.0"
 tonic = "0.8.3"

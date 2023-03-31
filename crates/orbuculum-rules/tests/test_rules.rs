@@ -1,6 +1,6 @@
 mod context;
 
-use nicrules::{insert_nic_ord_types, get_desired_devices};
+use orbuculum_rules::{insert_nic_ord_types, get_desired_devices};
 use rstest::rstest;
 use serde_json::Value;
 use std::panic;

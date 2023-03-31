@@ -82,6 +82,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                 if let Some(mac) = device.hw_address() {
                     let state = nm_display(device.state());
                     let is_managed = device.is_managed();
+                    let iface_clone = interface.clone();
                     let device_type = nm_display(device.device_type());
                     let conn = device
                         .available_connections()
@@ -97,13 +98,21 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                             ConnectionItem { id, uuid }
                         })
                         .unwrap_or(
-                            get_latest_connection(&mut device.available_connections())
-                                .and_then(|y| {
-                                    let id = y.id().map(|x| x.to_string());
-                                    let uuid = y.uuid().map(|x| x.to_string());
-                                    Some(ConnectionItem { id, uuid })
-                                })
-                                .unwrap_or_default(),
+                            get_latest_connection(
+                                &mut client.connections().into_iter().filter_map(|x| {
+                                    if x.interface_name().as_ref() == Some(&iface_clone) {
+                                        Some(x)
+                                    } else {
+                                        None
+                                    }
+                                }).collect::<Vec<nm::RemoteConnection>>(),
+                            )
+                            .and_then(|y| {
+                                let id = y.id().map(|x| x.to_string());
+                                let uuid = y.uuid().map(|x| x.to_string());
+                                Some(ConnectionItem { id, uuid })
+                            })
+                            .unwrap_or_default(),
                         );
                     let ip4info = device
                         .ip4_config()

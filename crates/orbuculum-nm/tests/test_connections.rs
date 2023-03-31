@@ -1,7 +1,7 @@
 mod fixture;
 
 use fixture::start_instance;
-use network::{send_command, NetworkCommand, State};
+use orbuculum_nm::{send_command, NetworkCommand, State};
 use rstest::rstest;
 use std::process::Command;
 use std::sync::Arc;
@@ -135,9 +135,14 @@ async fn test_get_connection(#[future] start_instance: Arc<State>) {
     )
     .await
     .ok()
-    .map(|x| x.into_value().unwrap()).unwrap();
+    .map(|x| x.into_value().unwrap())
+    .unwrap();
     let got_uuid = connection["uuid"].as_str().unwrap();
     assert_eq!(got_uuid, connection_uuid);
     let clean_args = format!("nmcli connection delete {}", connection_uuid);
-    Command::new("bash").arg("-c").arg(&clean_args).output().unwrap();
+    Command::new("bash")
+        .arg("-c")
+        .arg(&clean_args)
+        .output()
+        .unwrap();
 }

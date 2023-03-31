@@ -1,8 +1,8 @@
-use network::{
+use orbuculum_nm::{
     create_channel, gather_link_modes, run_network_manager_loop, send_command, NetworkCommand,
     State,
 };
-use nicrules::{insert_device_con_names, sort_devices};
+use orbuculum_rules::{insert_device_con_names, sort_devices};
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;

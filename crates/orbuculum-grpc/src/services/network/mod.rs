@@ -2,7 +2,7 @@ use crate::network_grpc::ConnectionsReply;
 
 use super::super::{ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
 use eyre::Result;
-use network::{send_command, NetworkCommand, State};
+use orbuculum_nm::{send_command, NetworkCommand, State};
 
 use std::sync::Arc;
 use tonic::{Request, Response, Status};

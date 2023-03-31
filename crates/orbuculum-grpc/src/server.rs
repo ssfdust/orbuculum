@@ -4,7 +4,7 @@
 //! We create the `GlibStateLayer` layer, which share the `GlibStateMiddleware`
 //! with the server.
 
-use network::State;
+use orbuculum_nm::State;
 use std::sync::Arc;
 
 use super::{network_grpc::NETWROK_FILE_DESCRIPTOR_SET, NetworkServer, NetworkService};
