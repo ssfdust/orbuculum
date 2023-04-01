@@ -17,5 +17,6 @@ dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc l
 # Install rust
 runuser -u vagrant -- /home/vagrant/.cargo/bin/rustup default nightly
 echo "source ~/.cargo/env" | tee -a /home/vagrant/.bashrc
+echo "export CARGO_TARGET_DIR=/home/vagrant/target" | tee -a /home/vagrant/.bashrc
 
 touch /etc/.initilized

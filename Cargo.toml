@@ -5,6 +5,12 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "orbuculum-web"
+
+[[bin]]
+name = "orbuculum-rhai"
+
 [dependencies]
 futures = "0.3.25"
 hyper = "0.14.23"
@@ -16,3 +22,5 @@ orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }
 tokio = { version = "1.23.0", features = ["full"] }
 udev = "0.7.0"
 serde_json = "1.0.95"
+axum = "0.6.12"
+orbuculum-web = { version = "0.1.0", path = "crates/orbuculum-web" }
