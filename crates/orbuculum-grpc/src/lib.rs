@@ -4,7 +4,7 @@ mod initilize;
 mod server;
 mod services;
 pub use server::create_server;
-use services::network::NetworkService;
+use services::nm::NetworkService;
 
 pub mod network_grpc {
     tonic::include_proto!("network");
