@@ -12,7 +12,6 @@ use rstest::rstest;
 use serde_json::Value;
 use std::panic;
 use std::pin::Pin;
-use std::process::Command;
 use std::sync::Arc;
 
 #[rstest]
@@ -128,33 +127,29 @@ async fn test_list_devices(#[future] start_instance: Arc<State>) {
 /// });
 /// ```
 async fn test_manage_devices(#[future] start_instance: Arc<State>) {
-    let interface = "eth1";
-    let state = Arc::clone(&start_instance.await);
-    send_command(
-        Arc::clone(&state),
-        NetworkCommand::SetManage(interface.to_string(), false),
-    )
-    .await
-    .unwrap();
-    let devices = send_command(Arc::clone(&state), NetworkCommand::ListDeivces)
-        .await
-        .ok()
-        .map(|x| x.into_value().unwrap())
-        .unwrap();
-    match devices {
-        Value::Array(items) => {
-            for item in items {
-                if item["name"].as_str() == Some("eth1") {
-                    assert_eq!(item["is_managed"].as_bool(), Some(false));
-                }
-            }
-        }
-        _ => assert!(false),
+    let start_instance_ref = &start_instance.await;
+    let async_wrapper = |start_instance_ref: Arc<State>| {
+        Box::pin(async move {
+            send_command(
+                start_instance_ref,
+                NetworkCommand::SetManage("eth3".to_string(), false),
+            )
+            .await
+            .unwrap();
+            let unmanaged_interface = context::run_shell_cmd("nmcli -t device status | awk -F: '/eth3.*unmanaged/{print $1}'").unwrap();
+            assert_eq!(unmanaged_interface, "eth3");
+        }) as Pin<Box<dyn Future<Output = ()>>>
+    };
+
+    // Actually run the async test
+    let result = async move {
+        panic::AssertUnwindSafe(async_wrapper(Arc::clone(start_instance_ref)))
+            .catch_unwind()
+            .await
     }
-    send_command(
-        Arc::clone(&state),
-        NetworkCommand::SetManage(interface.to_string(), true),
-    )
-    .await
-    .unwrap();
+    .await;
+
+    // Test teardown
+    context::run_shell_cmd("nmcli device set eth3 managed on").unwrap();
+    assert!(result.is_ok());
 }

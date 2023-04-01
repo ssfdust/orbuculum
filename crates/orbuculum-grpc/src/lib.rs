@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate eyre;
-mod decoder;
 mod initilize;
 mod server;
 mod services;

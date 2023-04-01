@@ -1,148 +1,161 @@
 mod fixture;
+mod context;
 
+use std::pin::Pin;
 use fixture::start_instance;
+use futures::{Future, FutureExt};
 use orbuculum_nm::{send_command, NetworkCommand, State};
 use rstest::rstest;
 use std::process::Command;
 use std::sync::Arc;
+use std::panic;
 
 #[rstest]
 #[tokio::test]
 async fn test_list_connections(#[future] start_instance: Arc<State>) {
-    let connections = send_command(
-        Arc::clone(&start_instance.await),
-        NetworkCommand::ListConnections,
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    let mut names: Vec<String> = connections
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter_map(|conn| {
-            conn.get("name")
-                .and_then(serde_json::Value::as_str)
-                .map(str::to_owned)
-        })
-        .collect();
+    let start_instance_ref = &start_instance.await;
+    let async_wrapper = |start_instance_ref: Arc<State>| {
+        Box::pin(async move {
+            let connections = send_command(
+                start_instance_ref,
+                NetworkCommand::ListConnections,
+            )
+            .await
+            .ok()
+            .map(|x| x.into_value().unwrap())
+            .unwrap();
+            let mut names: Vec<&str> = connections
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter_map(|conn| {
+                    conn.get("name")
+                        .and_then(|x| x.as_str())
+                })
+                .collect();
 
-    let nmcli_cons = Command::new("nmcli")
-        .arg("-t")
-        .arg("con")
-        .arg("show")
-        .output()
-        .unwrap();
-    let nmcli_stdout = String::from_utf8_lossy(&nmcli_cons.stdout); //将输出转换为utf8字符串
-    let mut nmcli_con_names: Vec<String> = Vec::new();
+            let nmcli_con_names = context::run_shell_cmd("nmcli -t connection show | awk -F: '{print $1}'").unwrap();
+            let mut nmcli_con_names: Vec<&str> = nmcli_con_names.lines().collect();
+            nmcli_con_names.sort();
+            names.sort();
+            assert_eq!(names, nmcli_con_names);
+        }) as Pin<Box<dyn Future<Output = ()>>>
+    };
 
-    for line in nmcli_stdout.lines() {
-        let first_colon_idx = match line.find(':') {
-            Some(idx) => idx,
-            None => continue,
-        };
-        nmcli_con_names.push(line[0..first_colon_idx].to_owned());
+    // Actually run the async test
+    let result = async move {
+        panic::AssertUnwindSafe(async_wrapper(Arc::clone(start_instance_ref)))
+            .catch_unwind()
+            .await
     }
-    nmcli_con_names.sort();
-    names.sort();
-    assert_eq!(names, nmcli_con_names);
+    .await;
+
+    // Test teardown
+    assert!(result.is_ok());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_create_connection(#[future] start_instance: Arc<State>) {
-    let connection = send_command(
-        Arc::clone(&start_instance.await),
-        NetworkCommand::CreateWiredConnection(
-            "my_special_connection".to_string(),
-            "eth4".to_string(),
-        ),
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    let uuid = connection.as_str().unwrap();
-    assert!(uuid.len() > 0);
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("delete")
-        .arg("my_special_connection")
-        .output()
-        .unwrap();
+    let start_instance_ref = &start_instance.await;
+    let async_wrapper = |start_instance_ref: Arc<State>| {
+        Box::pin(async move {
+            let connection = send_command(
+                start_instance_ref,
+                NetworkCommand::CreateWiredConnection(
+                    "my_special_connection".to_string(),
+                    "eth4".to_string(),
+                ),
+            )
+            .await
+            .ok()
+            .map(|x| x.into_value().unwrap())
+            .unwrap();
+            let uuid = connection.as_str().unwrap();
+            let connection_string = format!("my_special_connection:{}", uuid);
+            let output = context::run_shell_cmd("nmcli -t connection show | grep my_special_connection").unwrap();
+            assert!(uuid.len() > 0 && output.contains(&connection_string));
+        }) as Pin<Box<dyn Future<Output = ()>>>
+    };
+
+    // Actually run the async test
+    let result = async move {
+        panic::AssertUnwindSafe(async_wrapper(Arc::clone(start_instance_ref)))
+            .catch_unwind()
+            .await
+    }
+    .await;
+
+    // Test teardown
+    context::run_shell_cmd("nmcli connection delete my_special_connection").unwrap();
+    assert!(result.is_ok());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_rename_connection(#[future] start_instance: Arc<State>) {
-    let shared_state = Arc::clone(&start_instance.await);
-    let shared_state_clone = Arc::clone(&shared_state);
-    let shared_state_clone_1 = Arc::clone(&shared_state);
-    let connection = send_command(
-        shared_state_clone,
-        NetworkCommand::CreateWiredConnection("my_old_connection".to_string(), "eth4".to_string()),
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    let uuid = connection.as_str().unwrap();
-    send_command(
-        shared_state_clone_1,
-        NetworkCommand::RenameConnection(uuid.to_string(), "my_new_connection".to_string()),
-    )
-    .await
-    .unwrap();
-    let nmcli_cons = Command::new("nmcli")
-        .arg("-t")
-        .arg("con")
-        .arg("show")
-        .output()
-        .unwrap();
-    let nmcli_stdout = String::from_utf8_lossy(&nmcli_cons.stdout);
-    let some_str = format!("my_new_connection:{}", uuid);
-    assert!(nmcli_stdout.contains(&some_str));
-    Command::new("nmcli")
-        .arg("connection")
-        .arg("delete")
-        .arg("my_new_connection")
-        .output()
-        .unwrap();
+    let uuid = context::tearup_nm_old_unique_connection();
+
+    let start_instance_ref = &start_instance.await;
+
+    let async_wrapper = |start_instance_ref: Arc<State>| {
+        Box::pin(async move {
+            send_command(
+                start_instance_ref,
+                NetworkCommand::RenameConnection(uuid.to_string(), "my_unique_new_connection".to_string()),
+            )
+            .await
+            .unwrap();
+            let connection_string = format!("my_unique_new_connection:{}", uuid);
+            let output = context::run_shell_cmd("nmcli -t connection show | grep my_unique_new_connection").unwrap();
+            assert!(uuid.len() > 0 && output.contains(&connection_string));
+        }) as Pin<Box<dyn Future<Output = ()>>>
+    };
+
+    // Actually run the async test
+    let result = async move {
+        panic::AssertUnwindSafe(async_wrapper(Arc::clone(start_instance_ref)))
+            .catch_unwind()
+            .await
+    }
+    .await;
+
+    // Test teardown
+    context::run_shell_cmd("nmcli connection delete my_unique_new_connection").unwrap();
+    assert!(result.is_ok());
 }
 
 #[rstest]
 #[tokio::test]
 async fn test_get_connection(#[future] start_instance: Arc<State>) {
-    let shared_state = Arc::clone(&start_instance.await);
-    let shared_state_clone = Arc::clone(&shared_state);
-    let shared_state_clone_1 = Arc::clone(&shared_state);
-    let connection_uuid = send_command(
-        shared_state,
-        NetworkCommand::CreateWiredConnection(
-            "my_unique_connection".to_string(),
-            "eth4".to_string(),
-        ),
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    let connection_uuid = connection_uuid.as_str().unwrap();
-    let connection = send_command(
-        shared_state_clone,
-        NetworkCommand::GetConnection(connection_uuid.to_string()),
-    )
-    .await
-    .ok()
-    .map(|x| x.into_value().unwrap())
-    .unwrap();
-    let got_uuid = connection["uuid"].as_str().unwrap();
-    assert_eq!(got_uuid, connection_uuid);
-    let clean_args = format!("nmcli connection delete {}", connection_uuid);
-    Command::new("bash")
-        .arg("-c")
-        .arg(&clean_args)
-        .output()
-        .unwrap();
+    let connection_uuid = context::tearup_nm_testable_connection();
+    let start_instance_ref = &start_instance.await;
+    let async_wrapper = |start_instance_ref: Arc<State>| {
+        Box::pin(async move {
+            let connection = send_command(
+                start_instance_ref,
+                NetworkCommand::GetConnection(connection_uuid.to_string()),
+            )
+            .await
+            .ok()
+            .map(|x| x.into_value().unwrap())
+            .unwrap();
+            let got_uuid = connection["uuid"].as_str().unwrap();
+            let got_name = connection["name"].as_str().unwrap();
+            assert_eq!(got_uuid, connection_uuid);
+            assert_eq!(got_name, "eth8");
+        }) as Pin<Box<dyn Future<Output = ()>>>
+    };
+
+    // Actually run the async test
+    let result = async move {
+        panic::AssertUnwindSafe(async_wrapper(Arc::clone(start_instance_ref)))
+            .catch_unwind()
+            .await
+    }
+    .await;
+
+    // Test teardown
+    context::run_shell_cmd("nmcli connection delete my_testable_connection").unwrap();
+    assert!(result.is_ok());
 }

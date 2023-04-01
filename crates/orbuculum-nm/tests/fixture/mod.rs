@@ -1,7 +1,6 @@
-use futures::FutureExt;
 use orbuculum_nm::{create_channel, gather_link_modes, run_network_manager_loop, State};
 use rstest::fixture;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::thread;
 
 #[fixture]
