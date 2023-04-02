@@ -31,7 +31,7 @@ async fn main() {
                         .level(Level::INFO)
                         .latency_unit(LatencyUnit::Micros)
                 ))
-        // healhz without tracing
+        // healthz without tracing
         .route("/healthz", get(health));
 
     info!("Web starts at {}", addr);
