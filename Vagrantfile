@@ -2,7 +2,6 @@ Vagrant.configure("2") do |config|
   config.vm.box = "roboxes/rocky9"
   config.vm.guest = :rocky
   config.vm.synced_folder ".", "/vagrant", disabled: true
-  config.vm.synced_folder ENV["HOME"] + "/dotfiles", "/home/vagrant/dotfiles", type: "nfs", nfs_udp: false, nfs_version: "4.2"
   config.vm.synced_folder "./", "/home/vagrant/workspace", type: "nfs", nfs_udp: false, nfs_version: "4.2"
   config.vm.synced_folder ENV["HOME"] + "/.cargo", "/home/vagrant/.cargo", type: "nfs", nfs_udp: false, nfs_version: "4.2"
   config.vm.network :private_network,
