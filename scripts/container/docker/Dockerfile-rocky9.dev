@@ -1,0 +1,12 @@
+FROM rockylinux:9
+COPY assets /
+# ENV HTTPS_PROXY=http://192.168.1.81:10801
+# ENV HTTP_PROXY=http://192.168.1.81:10801
+# ENV ALL_PROXY=http://192.168.1.81:10801
+RUN bash /localize-rocky9/localize.sh \
+    && dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc llvm jq \
+    && dnf clean all
+RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y"
+RUN cp /localize-rocky9/config /root/.cargo/config
+ENV PATH=/root/.cargo/bin:$PATH
+RUN git config --global --add safe.directory '*'
