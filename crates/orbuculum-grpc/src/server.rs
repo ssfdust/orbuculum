@@ -10,6 +10,7 @@ use std::sync::Arc;
 use super::{network_grpc::NETWROK_FILE_DESCRIPTOR_SET, NetworkServer, NetworkService};
 use eyre::Result;
 use hyper::Body;
+use log::{info};
 use std::{
     task::{Context, Poll},
     time::Duration,
@@ -35,6 +36,8 @@ pub fn create_server(
         .timeout(Duration::from_secs(30))
         .layer(GlibStateLayer::new(shared_state))
         .into_inner();
+
+    info!("Server starts at {}", addr);
 
     Server::builder()
         .layer(layer)
