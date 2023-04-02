@@ -11,5 +11,5 @@ jobs:
          cd scripts
          bash build-dev-docker.sh
          cd ..
-         docker run --network=host --rm '$(pwd):/work' --workdir /work -ti docker.io/ssfdust/orbuculum-dev cargo build
+         docker run --network=host --rm '$(pwd):/work' --workdir /work -ti docker.io/ssfdust/orbuculum-dev:latest cargo build
       shell: bash
