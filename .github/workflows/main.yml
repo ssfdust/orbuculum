@@ -23,13 +23,13 @@ jobs:
       shell: bash
 
     - name: Run buildah for rockylinux 9
-      if: "contains( matrix.config.container, 'docker-rocky9')"
+      if: "contains( matrix.config.container, 'buildah-rocky9')"
       run: |
         make buildah
         podman run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
       shell: bash
 
-    - name: Run buildah for rockylinux 9
+    - name: Run docker for rockylinux 9
       if: "contains( matrix.config.container, 'docker-rocky9')"
       run: |
         make docker-rocky9
