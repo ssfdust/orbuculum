@@ -1,0 +1,16 @@
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run script file
+      run: |
+         cd scripts
+         bash build-dev-docker.sh
+         source cargo-docker
+         cd ..
+         xcargo build
+      shell: bash
