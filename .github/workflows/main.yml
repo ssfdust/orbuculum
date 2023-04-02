@@ -8,8 +8,6 @@ jobs:
 
     - name: Run script file
       run: |
-         cd scripts
-         bash build-dev-docker.sh
-         cd ..
-         docker run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
+        make docker
+        docker run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
       shell: bash
