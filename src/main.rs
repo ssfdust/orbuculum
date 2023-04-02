@@ -1,5 +1,7 @@
-use network::{create_channel, run_network_manager_loop, State, gather_link_modes};
-use server::create_server;
+extern crate orbuculum_grpc;
+extern crate orbuculum_nm;
+use orbuculum_grpc::create_server;
+use orbuculum_nm::{create_channel, gather_link_modes, run_network_manager_loop, State};
 use std::sync::Arc;
 use std::thread;
 
