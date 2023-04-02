@@ -1,5 +1,5 @@
-#!/bin/nu
-let container = (buildah from docker.io/library/rockylinux:9)
+#!/bin/sh
+let container = $(buildah from docker.io/library/rockylinux:9)
 buildah add $container inner /
 buildah run --network=host $container -- bash /docker-init/localize.sh
 buildah run --network=host $container -- bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y"
