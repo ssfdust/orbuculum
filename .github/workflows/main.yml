@@ -3,11 +3,35 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-20.04
+            container: buildah-rocky9
+          - os: ubuntu-20.04
+            container: docker-rocky9
+          - os: ubuntu-20.04
+            container: docker-ubuntu
     steps:
     - uses: actions/checkout@v2
 
-    - name: Run script file
+    - name: Run docker for ubuntu
+      if: "contains( matrix.config.container, 'docker-ubuntu')"
       run: |
         make docker
+        docker run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
+      shell: bash
+
+    - name: Run buildah for rockylinux 9
+      if: "contains( matrix.config.container, 'docker-rocky9')"
+      run: |
+        make buildah
+        podman run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
+      shell: bash
+
+    - name: Run buildah for rockylinux 9
+      if: "contains( matrix.config.container, 'docker-rocky9')"
+      run: |
+        make docker-rocky9
         docker run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
       shell: bash
