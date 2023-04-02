@@ -5,6 +5,8 @@ use std::thread;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
+
     let (glib_sender, glib_receiver) = create_channel();
     let link_modes = gather_link_modes(None).await.unwrap();
     let arc_link_modes = Arc::new(link_modes);

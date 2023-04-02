@@ -6,10 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+env_logger = "0.10.0"
 futures = "0.3.25"
 hyper = "0.14.23"
 glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.18.0" }
 lazy_static = "1.4.0"
+log = "0.4.17"
 network = { path = "network" }
 server = { version = "0.1.0", path = "server" }
 tokio = { version = "1.23.0", features = ["full"] }
