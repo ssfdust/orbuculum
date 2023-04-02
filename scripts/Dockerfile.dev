@@ -1,0 +1,10 @@
+FROM ubuntu:22.04
+COPY inner /
+# ENV HTTPS_PROXY=http://192.168.1.81:10801
+# ENV HTTP_PROXY=http://192.168.1.81:10801
+# ENV ALL_PROXY=http://192.168.1.81:10801
+RUN apt update -y && apt upgrade -y && apt install -y curl build-essential git libudev-dev libnm-dev libsystemd-dev protobuf-compiler && apt autoremove -y && apt autoclean -y
+RUN bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y"
+RUN cp /docker-init/config /root/.cargo/config
+ENV PATH=/root/.cargo/bin:$PATH
+RUN git config --global --add safe.directory '*'
