@@ -12,10 +12,12 @@ name = "orbuculum-web"
 name = "orbuculum-rhai"
 
 [dependencies]
+env_logger = "0.10.0"
 futures = "0.3.25"
 hyper = "0.14.23"
 glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.18.0" }
 lazy_static = "1.4.0"
+log = "0.4.17"
 orbuculum-nm = { version = "0.0.1", path = "crates/orbuculum-nm" }
 orbuculum-grpc = { version = "0.0.1", path = "crates/orbuculum-grpc" }
 orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }

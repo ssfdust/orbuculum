@@ -7,6 +7,16 @@ Development
 ===================
 Vagrant
 -------------------
+
+### Install libvirt plugin
+
+```bash
+vagrant plugin install vagrant-libvirt
+vagrant up --provider libvirt
+vagrant ssh
+cd workspace
+```
+
 After the first boot, it should be manually reloaded via `Vagrant reload`.
 
 Docker
