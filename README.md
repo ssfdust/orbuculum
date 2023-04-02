@@ -9,7 +9,6 @@ Vagrant
 -------------------
 After the first boot, it should be manually reloaded via `Vagrant reload`.
 
-====================
 Docker
 --------------------
 
