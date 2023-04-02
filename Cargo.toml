@@ -22,6 +22,8 @@ orbuculum-nm = { version = "0.0.1", path = "crates/orbuculum-nm" }
 orbuculum-grpc = { version = "0.0.1", path = "crates/orbuculum-grpc" }
 orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }
 tokio = { version = "1.23.0", features = ["full"] }
+tower-http = { version = "0.4.0", features = ["trace"] }
+tracing = "0.1.37"
 udev = "0.7.0"
 serde_json = "1.0.95"
 axum = "0.6.12"

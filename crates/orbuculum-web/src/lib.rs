@@ -1,6 +1,11 @@
 use orbuculum_grpc::{NetworkClient, ConnectionUuidRequest};
 use axum::extract::Path;
+use axum::http::StatusCode;
 use serde_json::Value;
+
+pub async fn health() -> StatusCode {
+    StatusCode::OK
+}
 
 pub async fn list_devices() -> axum::extract::Json<Value> {
     let mut client = NetworkClient::connect("http://127.0.0.1:50051").await.unwrap();
