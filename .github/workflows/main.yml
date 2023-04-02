@@ -10,7 +10,6 @@ jobs:
       run: |
          cd scripts
          bash build-dev-docker.sh
-         source cargo-docker
          cd ..
-         xcargo build
+         docker run --network=host --rm '$(pwd):/work' --workdir /work -ti docker.io/ssfdust/orbuculum-dev cargo build
       shell: bash
