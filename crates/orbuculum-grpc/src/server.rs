@@ -41,7 +41,6 @@ pub fn create_server(
 
     Server::builder()
         .layer(layer)
-        .accept_http1(true)
         .add_service(svc)
         .add_service(reflection_service)
         .serve(addr)
@@ -91,6 +90,12 @@ where
     fn call(&mut self, mut req: hyper::Request<Body>) -> Self::Future {
         let clone = self.inner.clone();
         let mut inner = std::mem::replace(&mut self.inner, clone);
+        let extensions = req.extensions_mut();
+        if let Some(tcpinfo) = extensions.get::<tonic::transport::server::TcpConnectInfo>() {
+            let remote_addr = tcpinfo.remote_addr().map(|x| x.to_string()).unwrap_or_default();
+            let uri = req.uri();
+            info!("remote: {}, uri: {}, headers: {:?}", remote_addr, uri, req.headers());
+        }
         req.extensions_mut().insert(self.ref_state.clone());
 
         Box::pin(async move {
