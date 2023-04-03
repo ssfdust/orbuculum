@@ -5,4 +5,4 @@ rust_log="-e RUST_LOG=debug"
 
 alias xcargo="docker run --network=host --rm $proxy $rust_log -v '$(pwd):/work' -v '$HOME/.cargo/git:/root/.cargo/git:rw' -v '$HOME/.cargo/registry:/root/.cargo/registry:rw' --workdir /work -ti docker.io/ssfdust/orbuculum-dev cargo"
 alias xbash="docker run --network=host --rm $proxy -v '$(pwd):/work' -v '$HOME/.cargo/git:/root/.cargo/git:rw' -v '$HOME/.cargo/registry:/root/.cargo/registry:rw' --workdir /work -ti docker.io/ssfdust/orbuculum-dev bash"
-alias xstop="docker ps -a | grep orbuculum | awk '{ print $1 }' | xargs docker stop"
+alias xstop="docker ps -a | grep orbuculum | awk '{ print \$1 }' | xargs docker stop"
