@@ -938,6 +938,7 @@ dependencies = [
  "hyper",
  "log",
  "orbuculum-nm",
+ "orbuculum-rules",
  "prost",
  "serde",
  "serde_json",

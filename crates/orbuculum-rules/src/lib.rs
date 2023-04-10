@@ -144,6 +144,10 @@ fn trim_device_value(device: &Value) -> Value {
     let device_obj = device.as_object().unwrap();
     for key in device_obj.keys() {
         let value = device.get(key).unwrap();
+        // insert connection information
+        if key == "connection" {
+            new_device_map.insert(key.to_owned(), value.clone());
+        }
         if !value.is_object() {
             if value.is_null() {
                 new_device_map.insert(key.to_owned(), json!(""));
