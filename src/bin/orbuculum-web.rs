@@ -1,10 +1,12 @@
 use axum::routing::{get, put};
-use orbuculum_web::{get_connection_by_uuid, list_connections, list_devices, health, update_connection};
-use tracing::{Level, info};
-use tower_http::{
-    LatencyUnit,
-    trace::{TraceLayer, DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse},
+use orbuculum_web::{
+    get_connection_by_uuid, health, list_connections, list_devices, update_connection,
 };
+use tower_http::{
+    trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
+    LatencyUnit,
+};
+use tracing::{info, Level};
 
 #[tokio::main]
 async fn main() {
@@ -20,18 +22,16 @@ async fn main() {
         .route("/api/proxy/connection", put(update_connection))
         // health with tracing
         .route("/health", get(health))
-        .layer(TraceLayer::new_for_http()
-                .make_span_with(
-                    DefaultMakeSpan::new().include_headers(true)
-                )
-                .on_request(
-                    DefaultOnRequest::new().level(Level::INFO)
-                )
+        .layer(
+            TraceLayer::new_for_http()
+                .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                .on_request(DefaultOnRequest::new().level(Level::INFO))
                 .on_response(
                     DefaultOnResponse::new()
                         .level(Level::INFO)
-                        .latency_unit(LatencyUnit::Micros)
-                ))
+                        .latency_unit(LatencyUnit::Micros),
+                ),
+        )
         // healthz without tracing
         .route("/healthz", get(health));
 
