@@ -14,7 +14,7 @@ fn insert_nic_type_ord(device) {
     return device;
 }
 
-fn modify_connection_names(devices, device_type) {
+fn modify_connections(devices, device_type) {
     let new_devices = [];
     if device_type == "Ethernet" {
         for (device, idx) in devices {
