@@ -1,6 +1,6 @@
 use crate::network_grpc::ConnectionsReply;
 
-use super::super::{ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
+use super::super::{ConnectionBody, ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
 use eyre::Result;
 use orbuculum_nm::{send_command, NetworkCommand, State};
 
@@ -40,24 +40,21 @@ impl Network for NetworkService {
         let shared_state = request.extensions().get::<Arc<State>>().unwrap();
         let shared_state = Arc::clone(shared_state);
         let uuid = request.into_inner().uuid;
-        let resp = send_command(
-            shared_state,
-            NetworkCommand::GetConnection(uuid.clone()),
-        )
-        .await
-        .and_then(|x| {
-            if let Some(connection) = x.into_value() {
-                let data = serde_json::from_value(connection).unwrap();
-                Ok(Response::new(ConnectionReply {
-                    code: 0,
-                    msg: "Sucessful".into(),
-                    data,
-                }))
-            } else {
-                bail!("Failed to get connection with uuid {}", uuid)
-            }
-        })
-        .unwrap();
+        let resp = send_command(shared_state, NetworkCommand::GetConnection(uuid.clone()))
+            .await
+            .and_then(|x| {
+                if let Some(connection) = x.into_value() {
+                    let data = serde_json::from_value(connection).unwrap();
+                    Ok(Response::new(ConnectionReply {
+                        code: 0,
+                        msg: "Sucessful".into(),
+                        data,
+                    }))
+                } else {
+                    bail!("Failed to get connection with uuid {}", uuid)
+                }
+            })
+            .unwrap();
         Ok(resp)
     }
 
@@ -83,5 +80,34 @@ impl Network for NetworkService {
             })
             .unwrap();
         Ok(resp)
+    }
+
+    async fn update_connection(
+        &self,
+        request: Request<ConnectionBody>,
+    ) -> Result<Response<ConnectionReply>, Status> {
+        let shared_state = request.extensions().get::<Arc<State>>().unwrap();
+        let shared_state = Arc::clone(shared_state);
+        match serde_json::to_value(request.into_inner()) {
+            Ok(connection) => {
+                let resp = send_command(shared_state, NetworkCommand::UpdateConnection(connection))
+                    .await
+                    .and_then(|x| {
+                        if let Some(connection) = x.into_value() {
+                            let data = serde_json::from_value(connection).unwrap();
+                            Ok(Response::new(ConnectionReply {
+                                code: 0,
+                                msg: "Sucessful".into(),
+                                data,
+                            }))
+                        } else {
+                            bail!("Failed to update connection")
+                        }
+                    })
+                    .unwrap();
+                Ok(resp)
+            }
+            _ => Err(Status::invalid_argument("Failed to parse request data")),
+        }
     }
 }

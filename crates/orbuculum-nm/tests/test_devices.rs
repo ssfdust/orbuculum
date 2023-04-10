@@ -136,7 +136,10 @@ async fn test_manage_devices(#[future] start_instance: Arc<State>) {
             )
             .await
             .unwrap();
-            let unmanaged_interface = context::run_shell_cmd("nmcli -t device status | awk -F: '/eth3.*unmanaged/{print $1}'").unwrap();
+            let unmanaged_interface = context::run_shell_cmd(
+                "nmcli -t device status | awk -F: '/eth3.*unmanaged/{print $1}'",
+            )
+            .unwrap();
             assert_eq!(unmanaged_interface, "eth3");
         }) as Pin<Box<dyn Future<Output = ()>>>
     };

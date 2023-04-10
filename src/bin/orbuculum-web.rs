@@ -1,5 +1,5 @@
-use axum::routing::get;
-use orbuculum_web::{get_connection_by_uuid, list_connections, list_devices, health};
+use axum::routing::{get, put};
+use orbuculum_web::{get_connection_by_uuid, list_connections, list_devices, health, update_connection};
 use tracing::{Level, info};
 use tower_http::{
     LatencyUnit,
@@ -17,6 +17,7 @@ async fn main() {
         .route("/api/proxy/devices", get(list_devices))
         .route("/api/proxy/connections", get(list_connections))
         .route("/api/proxy/connection/:uuid", get(get_connection_by_uuid))
+        .route("/api/proxy/connection", put(update_connection))
         // health with tracing
         .route("/health", get(health))
         .layer(TraceLayer::new_for_http()

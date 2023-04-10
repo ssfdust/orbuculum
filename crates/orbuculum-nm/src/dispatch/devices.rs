@@ -99,13 +99,17 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         })
                         .unwrap_or(
                             get_latest_connection(
-                                &mut client.connections().into_iter().filter_map(|x| {
-                                    if x.interface_name().as_ref() == Some(&iface_clone) {
-                                        Some(x)
-                                    } else {
-                                        None
-                                    }
-                                }).collect::<Vec<nm::RemoteConnection>>(),
+                                &mut client
+                                    .connections()
+                                    .into_iter()
+                                    .filter_map(|x| {
+                                        if x.interface_name().as_ref() == Some(&iface_clone) {
+                                            Some(x)
+                                        } else {
+                                            None
+                                        }
+                                    })
+                                    .collect::<Vec<nm::RemoteConnection>>(),
                             )
                             .and_then(|y| {
                                 let id = y.id().map(|x| x.to_string());

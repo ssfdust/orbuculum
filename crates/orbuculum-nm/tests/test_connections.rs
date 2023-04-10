@@ -1,14 +1,14 @@
-mod fixture;
 mod context;
+mod fixture;
 
-use std::pin::Pin;
 use fixture::start_instance;
 use futures::{Future, FutureExt};
 use orbuculum_nm::{send_command, NetworkCommand, State};
 use rstest::rstest;
+use std::panic;
+use std::pin::Pin;
 use std::process::Command;
 use std::sync::Arc;
-use std::panic;
 
 #[rstest]
 #[tokio::test]
@@ -16,25 +16,20 @@ async fn test_list_connections(#[future] start_instance: Arc<State>) {
     let start_instance_ref = &start_instance.await;
     let async_wrapper = |start_instance_ref: Arc<State>| {
         Box::pin(async move {
-            let connections = send_command(
-                start_instance_ref,
-                NetworkCommand::ListConnections,
-            )
-            .await
-            .ok()
-            .map(|x| x.into_value().unwrap())
-            .unwrap();
+            let connections = send_command(start_instance_ref, NetworkCommand::ListConnections)
+                .await
+                .ok()
+                .map(|x| x.into_value().unwrap())
+                .unwrap();
             let mut names: Vec<&str> = connections
                 .as_array()
                 .unwrap()
                 .iter()
-                .filter_map(|conn| {
-                    conn.get("name")
-                        .and_then(|x| x.as_str())
-                })
+                .filter_map(|conn| conn.get("name").and_then(|x| x.as_str()))
                 .collect();
 
-            let nmcli_con_names = context::run_shell_cmd("nmcli -t connection show | awk -F: '{print $1}'").unwrap();
+            let nmcli_con_names =
+                context::run_shell_cmd("nmcli -t connection show | awk -F: '{print $1}'").unwrap();
             let mut nmcli_con_names: Vec<&str> = nmcli_con_names.lines().collect();
             nmcli_con_names.sort();
             names.sort();
@@ -73,7 +68,9 @@ async fn test_create_connection(#[future] start_instance: Arc<State>) {
             .unwrap();
             let uuid = connection.as_str().unwrap();
             let connection_string = format!("my_special_connection:{}", uuid);
-            let output = context::run_shell_cmd("nmcli -t connection show | grep my_special_connection").unwrap();
+            let output =
+                context::run_shell_cmd("nmcli -t connection show | grep my_special_connection")
+                    .unwrap();
             assert!(uuid.len() > 0 && output.contains(&connection_string));
         }) as Pin<Box<dyn Future<Output = ()>>>
     };
@@ -102,12 +99,17 @@ async fn test_rename_connection(#[future] start_instance: Arc<State>) {
         Box::pin(async move {
             send_command(
                 start_instance_ref,
-                NetworkCommand::RenameConnection(uuid.to_string(), "my_unique_new_connection".to_string()),
+                NetworkCommand::RenameConnection(
+                    uuid.to_string(),
+                    "my_unique_new_connection".to_string(),
+                ),
             )
             .await
             .unwrap();
             let connection_string = format!("my_unique_new_connection:{}", uuid);
-            let output = context::run_shell_cmd("nmcli -t connection show | grep my_unique_new_connection").unwrap();
+            let output =
+                context::run_shell_cmd("nmcli -t connection show | grep my_unique_new_connection")
+                    .unwrap();
             assert!(uuid.len() > 0 && output.contains(&connection_string));
         }) as Pin<Box<dyn Future<Output = ()>>>
     };

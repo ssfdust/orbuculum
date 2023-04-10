@@ -9,6 +9,7 @@ service Network {
     rpc ListDevices (google.protobuf.Empty) returns (DevicesReply);
     rpc ListConnections (google.protobuf.Empty) returns (ConnectionsReply);
     rpc GetConnectionByUUID (ConnectionUUIDRequest) returns (ConnectionReply);
+    rpc UpdateConnection(ConnectionBody) returns (ConnectionReply);
 }
 
 message ConnectionReply {

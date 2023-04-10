@@ -17,15 +17,17 @@ use nm::{
     SettingIPConfig, SettingIPConfigExt, SettingWired, SimpleConnection,
     SETTING_WIRED_SETTING_NAME,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 
 /// The simplified connection struct
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Connection {
     pub name: String,
     pub uuid: String,
+    #[serde(skip_deserializing)]
     pub interface: Option<String>,
+    #[serde(skip_deserializing)]
     pub mac: Option<String>,
     pub ip4info: NetInfo,
     pub ip6info: NetInfo,
@@ -220,49 +222,60 @@ fn get_ip_config(connection: &nm::RemoteConnection, family: i32) -> Result<NetIn
     }
 }
 
-/// Update the settings of IP configuration
-pub async fn update_ip_config(
-    conn_name: String,
-    family: i32,
-    config: NetInfo,
-) -> Result<NetworkResponse> {
-    let client = create_client().await?;
-    let _conn: Option<nm::RemoteConnection> = try {
-        let connection: nm::RemoteConnection = client.connection_by_id(&conn_name)?;
-        let ipconfig: SettingIPConfig;
+fn update_ip_config(netinfo: &NetInfo, connection: &nm::RemoteConnection, family: i32) {
+    let mut some_ipconfig: Option<SettingIPConfig> = None;
 
-        // Parser configuration
-        if family == 4 {
-            ipconfig = connection.setting_ip4_config().map(|x| x.into())?;
-        } else {
-            ipconfig = connection.setting_ip6_config().map(|x| x.into())?;
-        }
-
-        ipconfig.set_method(Some(&config.method));
-        ipconfig.set_gateway(
-            config
-                .gateway
-                .map(|x| &*Box::leak(x.to_string().into_boxed_str())),
-        );
-
-        ipconfig.clear_addresses();
-        for address in config.addresses {
-            ipconfig.add_address(&ipnet2ipaddr(address).ok()?);
-        }
-
-        ipconfig.clear_dns();
-
-        for dns in config.dns {
-            ipconfig.add_dns(&dns.to_string());
-        }
-
-        ipconfig.clear_routes();
-        for route in config.routes {
-            ipconfig.add_route(&route.try_into().ok()?);
-        }
-
-        connection.commit_changes_future(true).await.unwrap();
-        connection
+    // Parser configuration
+    if family == 4 {
+        some_ipconfig = connection.setting_ip4_config().map(|x| x.into());
+    } else if family == 6 {
+        some_ipconfig = connection.setting_ip6_config().map(|x| x.into());
     };
-    Ok(NetworkResponse::Success)
+    match some_ipconfig {
+        Some(ipconfig) => {
+            ipconfig.set_method(Some(&netinfo.method));
+            ipconfig.set_gateway(
+                netinfo
+                    .gateway
+                    .map(|x| &*Box::leak(x.to_string().into_boxed_str())),
+            );
+            ipconfig.clear_addresses();
+            for address in netinfo.addresses.iter() {
+                ipconfig.add_address(&ipnet2ipaddr(*address).ok().unwrap());
+            }
+            ipconfig.clear_dns();
+
+            for dns in netinfo.dns.iter() {
+                ipconfig.add_dns(&dns.to_string());
+            }
+
+            ipconfig.clear_routes();
+            for route in netinfo.routes.clone().into_iter() {
+                ipconfig.add_route(&route.try_into().ok().unwrap());
+            }
+        }
+        None => (),
+    }
+}
+
+/// Update the settings of IP configuration
+pub async fn update_connection(connection_json: serde_json::Value) -> Result<NetworkResponse> {
+    let client = create_client().await?;
+    let connection: Connection = serde_json::from_value(connection_json)?;
+    let nm_connection: Option<nm::RemoteConnection> = try {
+        let nm_connection: nm::RemoteConnection = client.connection_by_uuid(&connection.uuid)?;
+
+        update_ip_config(&connection.ip4info, &nm_connection, 4);
+        update_ip_config(&connection.ip6info, &nm_connection, 6);
+
+        nm_connection.commit_changes_future(true).await.unwrap();
+        nm_connection
+    };
+    let conn = nm_connection
+        .and_then(|x| {
+            Connection::from_nm_connection(&x, &client)
+                .and_then(|y| Some(serde_json::to_value(y).unwrap()))
+        })
+        .expect("Failed to get Connection by UUID");
+    Ok(NetworkResponse::Return(conn))
 }

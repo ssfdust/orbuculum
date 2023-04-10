@@ -2,11 +2,11 @@
 //!
 //! The `net` moudule contains structures used to represent ip and route objects
 //! and they are the bridges between common rust objects and Glib objects.
-use crate::utils::{addrs_to_string, ipver_human, to_string};
+use crate::utils::{addrs_to_string, ipnet_from_string, ipver_human, to_string};
 use eyre::Result;
 use ipnet::IpNet;
 use nm::{IPAddress, IPConfig as NMIPConfig, IPRoute, SettingIPConfig, SettingIPConfigExt};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::boxed::Box;
 use std::net::IpAddr;
 
@@ -14,13 +14,17 @@ use std::net::IpAddr;
 ///
 /// The `NetInfo` type is a combination of addresses, gateway, dns and routes.
 /// The method is to idenitify how the net is initilized.
-#[derive(Debug, Default, Clone, Serialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct NetInfo {
     pub method: String,
-    #[serde(serialize_with = "addrs_to_string")]
+    #[serde(
+        serialize_with = "addrs_to_string",
+        deserialize_with = "ipnet_from_string"
+    )]
     pub addresses: Vec<IpNet>,
     pub gateway: Option<IpAddr>,
     pub dns: Vec<IpAddr>,
+    #[serde(skip_deserializing)]
     pub routes: Vec<Route>,
 }
 

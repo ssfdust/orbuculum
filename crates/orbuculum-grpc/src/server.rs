@@ -10,7 +10,7 @@ use std::sync::Arc;
 use super::{network_grpc::NETWROK_FILE_DESCRIPTOR_SET, NetworkServer, NetworkService};
 use eyre::Result;
 use hyper::Body;
-use log::{info};
+use log::info;
 use std::{
     task::{Context, Poll},
     time::Duration,
@@ -92,9 +92,17 @@ where
         let mut inner = std::mem::replace(&mut self.inner, clone);
         let extensions = req.extensions_mut();
         if let Some(tcpinfo) = extensions.get::<tonic::transport::server::TcpConnectInfo>() {
-            let remote_addr = tcpinfo.remote_addr().map(|x| x.to_string()).unwrap_or_default();
+            let remote_addr = tcpinfo
+                .remote_addr()
+                .map(|x| x.to_string())
+                .unwrap_or_default();
             let uri = req.uri();
-            info!("remote: {}, uri: {}, headers: {:?}", remote_addr, uri, req.headers());
+            info!(
+                "remote: {}, uri: {}, headers: {:?}",
+                remote_addr,
+                uri,
+                req.headers()
+            );
         }
         req.extensions_mut().insert(self.ref_state.clone());
 

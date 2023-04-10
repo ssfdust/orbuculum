@@ -1,5 +1,5 @@
-use std::process::Command;
 use eyre::Result;
+use std::process::Command;
 
 /// The connection must be shown even if the connection is down
 pub async fn setup_nm_test_devices_connections() {
@@ -33,7 +33,7 @@ pub async fn teardown_nm_test_devices_connections() {
     let commands = vec![
         "nmcli device set eth1 managed on",
         "nmcli connection delete test-con-1 test-con-2 test-con-3",
-        "nmcli -t con s | awk -F: '{print $2}' | xargs -n1 timeout 2 nmcli con up || true"
+        "nmcli -t con s | awk -F: '{print $2}' | xargs -n1 timeout 2 nmcli con up || true",
     ];
     for command in commands {
         run_shell_cmd(command).unwrap();
@@ -51,10 +51,25 @@ pub fn run_shell_cmd(command: &str) -> Result<String> {
 
 pub fn tearup_nm_old_unique_connection() -> String {
     run_shell_cmd("nmcli connection add type ethernet ifname eth8 con-name my_old_unique_connection ipv4.method disabled ipv6.method disabled").unwrap();
-    run_shell_cmd("nmcli -t connection show | awk -F: '/my_old_unique_connection/ {print $2}'").unwrap()
+    run_shell_cmd("nmcli -t connection show | awk -F: '/my_old_unique_connection/ {print $2}'")
+        .unwrap()
 }
 
 pub fn tearup_nm_testable_connection() -> String {
     run_shell_cmd("nmcli connection add type ethernet ifname eth8 con-name my_testable_connection ipv4.method manual ipv4.addresses 11.22.33.44/24 ipv4.gateway 11.22.33.1 ipv4.dns 8.8.8.8 ipv6.method manual ipv6.addresses fe80::64e2:92ff:fe2e:ff23/64").unwrap();
-    run_shell_cmd("nmcli -t connection show | awk -F: '/my_old_unique_connection/ {print $2}'").unwrap()
+    run_shell_cmd("nmcli -t connection show | awk -F: '/my_old_unique_connection/ {print $2}'")
+        .unwrap()
+}
+
+pub fn tearup_nm_modifiable_connection() -> String {
+    run_shell_cmd(
+        "nmcli connection add type ethernet ifname eth8 con-name my_modifiable_connection",
+    )
+    .unwrap();
+    run_shell_cmd("nmcli -t connection show | awk -F: '/my_modifiable_connection/ {print $2}'")
+        .unwrap()
+}
+
+pub fn teardown_nm_modifiable_connection() {
+    run_shell_cmd("nmcli connection delete my_modifiable_connection").unwrap();
 }
