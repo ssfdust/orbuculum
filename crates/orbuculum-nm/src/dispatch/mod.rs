@@ -22,7 +22,7 @@ use self::connections::get_connection;
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{
     create_wired_connection, delete_connection, list_connections, rename_connection,
-    update_connection,
+    update_connection, reactive_connection
 };
 use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
@@ -41,6 +41,7 @@ pub fn dispatch_command_requests(
     match command {
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
         NetworkCommand::GetConnection(uuid) => spawn(get_connection(uuid), responder),
+        NetworkCommand::Reactive(uuid) => spawn(reactive_connection(uuid), responder),
         NetworkCommand::UpdateConnection(connection) => {
             spawn(update_connection(connection), responder)
         }

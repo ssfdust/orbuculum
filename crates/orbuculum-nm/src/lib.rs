@@ -43,6 +43,7 @@ pub enum NetworkCommand {
     // modify
     SetManage(String, bool),
     UpdateConnection(Value),
+    Reactive(String),
     RenameConnection(String, String),
     DeleteConnection(String),
 }
