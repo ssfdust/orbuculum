@@ -15,5 +15,5 @@ pub mod network_grpc {
 pub use network_grpc::network_client::NetworkClient;
 use network_grpc::network_server::{Network, NetworkServer};
 pub use network_grpc::{
-    ConnectionBody, ConnectionReply, ConnectionUuidRequest, ConnectionsReply, DevicesReply,
+    ConnectionBody, ConnectionReply, ConnectionUuidRequest, ConnectionsReply, DevicesReply, HostnameBody
 };

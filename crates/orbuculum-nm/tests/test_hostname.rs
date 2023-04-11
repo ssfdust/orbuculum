@@ -28,12 +28,12 @@ async fn test_hostname(#[future] start_instance: Arc<State>) {
 
             send_command(
                 cloned_state,
-                NetworkCommand::SetHostname("my_hostname".to_string()),
+                NetworkCommand::SetHostname("myhostname".to_string()),
             )
             .await
             .unwrap();
             let new_hostname = context::run_shell_cmd("hostname").unwrap();
-            assert_eq!(new_hostname, "my_hostname");
+            assert_eq!(new_hostname, "myhostname");
         }) as Pin<Box<dyn Future<Output = ()>>>
     };
 

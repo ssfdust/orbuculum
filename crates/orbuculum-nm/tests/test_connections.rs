@@ -145,7 +145,7 @@ async fn test_get_connection(#[future] start_instance: Arc<State>) {
             let got_uuid = connection["uuid"].as_str().unwrap();
             let got_name = connection["name"].as_str().unwrap();
             assert_eq!(got_uuid, connection_uuid);
-            assert_eq!(got_name, "eth8");
+            assert_eq!(got_name, "my_old_unique_connection");
         }) as Pin<Box<dyn Future<Output = ()>>>
     };
 

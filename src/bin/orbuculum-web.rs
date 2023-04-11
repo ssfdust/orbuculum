@@ -1,7 +1,7 @@
 use axum::routing::{get, put};
 use orbuculum_web::{
     get_connection_by_uuid, health, list_connections, list_devices, update_connection,
-    GrpcInfo
+    GrpcInfo, get_hostname, set_hostname
 };
 use tower_http::{
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
@@ -30,6 +30,7 @@ async fn main() {
     // Build our application by creating our router.
     let app = axum::Router::new()
         .route("/api/proxy/devices", get(list_devices))
+        .route("/api/proxy/hostname", get(get_hostname).post(set_hostname))
         .route("/api/proxy/connections", get(list_connections))
         .route("/api/proxy/connection/:uuid", get(get_connection_by_uuid))
         .route("/api/proxy/connection", put(update_connection))

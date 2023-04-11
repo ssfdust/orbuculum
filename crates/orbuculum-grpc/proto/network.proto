@@ -10,6 +10,18 @@ service Network {
     rpc ListConnections (google.protobuf.Empty) returns (ConnectionsReply);
     rpc GetConnectionByUUID (ConnectionUUIDRequest) returns (ConnectionReply);
     rpc UpdateConnection(ConnectionBody) returns (ConnectionReply);
+    rpc GetHostname(google.protobuf.Empty) returns (HostnameReply);
+    rpc SetHostname(HostnameBody) returns (HostnameReply);
+}
+
+message HostnameReply {
+    int32 code = 1;
+    string msg = 2;
+    HostnameBody data = 3;
+}
+
+message HostnameBody {
+    string hostname = 1;
 }
 
 message ConnectionReply {

@@ -1,8 +1,9 @@
-use crate::network_grpc::ConnectionsReply;
+use crate::network_grpc::{ConnectionsReply, HostnameReply, HostnameBody};
 
 use super::super::{ConnectionBody, ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
-use eyre::Result;
+use eyre::{Result, ContextCompat};
 use orbuculum_nm::{send_command, NetworkCommand, State};
+use serde_json::json;
 
 use std::sync::Arc;
 use tonic::{Request, Response, Status};
@@ -103,6 +104,61 @@ impl Network for NetworkService {
                         } else {
                             bail!("Failed to update connection")
                         }
+                    })
+                    .unwrap();
+                Ok(resp)
+            }
+            _ => Err(Status::invalid_argument("Failed to parse request data")),
+        }
+    }
+
+    async fn get_hostname(
+        &self,
+        request: Request<()>,
+    ) -> Result<Response<HostnameReply>, Status> {
+        let shared_state = request.extensions().get::<Arc<State>>().unwrap();
+        let shared_state = Arc::clone(shared_state);
+        let resp = send_command(shared_state, NetworkCommand::GetHostname)
+            .await
+            .and_then(|x| {
+                if let Some(hostname) = x.into_value() {
+                    let hostname = hostname.as_str().map(|x| x.to_string()).wrap_err("Failed to parse hostname from request")?;
+                    let data = serde_json::from_value(json!({
+                        "hostname": hostname
+                    }))?;
+                    Ok(Response::new(HostnameReply {
+                        code: 0,
+                        msg: "Sucessful".into(),
+                        data,
+                    }))
+                } else {
+                    bail!("Failed to get hostname")
+                }
+            })
+            .unwrap();
+        Ok(resp)
+    }
+    async fn set_hostname(
+        &self,
+        request: Request<HostnameBody>,
+    ) -> Result<Response<HostnameReply>, Status> {
+        let shared_state = request.extensions().get::<Arc<State>>().unwrap();
+        let shared_state = Arc::clone(shared_state);
+        match serde_json::to_value(request.into_inner()) {
+            Ok(hostname) => {
+                let hostname = hostname["hostname"].as_str().map(|x| x.to_string()).unwrap();
+                let hostname_clone = hostname.clone();
+                let resp = send_command(shared_state, NetworkCommand::SetHostname(hostname))
+                    .await
+                    .and_then(|_| {
+                            let data = serde_json::from_value(json!({
+                                "hostname": hostname_clone
+                            }))?;
+                            Ok(Response::new(HostnameReply {
+                                code: 0,
+                                msg: "Sucessful".into(),
+                                data,
+                            }))
                     })
                     .unwrap();
                 Ok(resp)
