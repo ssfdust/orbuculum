@@ -59,6 +59,32 @@ impl Network for NetworkService {
         Ok(resp)
     }
 
+    async fn reactive_connection(
+        &self,
+        request: Request<ConnectionUuidRequest>,
+    ) -> Result<Response<ConnectionReply>, Status> {
+        let shared_state = request.extensions().get::<Arc<State>>().unwrap();
+        let shared_state = Arc::clone(shared_state);
+        let uuid = request.into_inner().uuid;
+        send_command(shared_state.clone(), NetworkCommand::Reactive(uuid.clone())).await.unwrap();
+        let resp = send_command(shared_state, NetworkCommand::GetConnection(uuid.clone()))
+            .await
+            .and_then(|x| {
+                if let Some(connection) = x.into_value() {
+                    let data = serde_json::from_value(connection).unwrap();
+                    Ok(Response::new(ConnectionReply {
+                        code: 0,
+                        msg: "Sucessful".into(),
+                        data,
+                    }))
+                } else {
+                    bail!("Failed to get connection with uuid {}", uuid)
+                }
+            })
+            .unwrap();
+        Ok(resp)
+    }
+
     async fn list_connections(
         &self,
         request: Request<()>,
@@ -138,6 +164,7 @@ impl Network for NetworkService {
             .unwrap();
         Ok(resp)
     }
+
     async fn set_hostname(
         &self,
         request: Request<HostnameBody>,

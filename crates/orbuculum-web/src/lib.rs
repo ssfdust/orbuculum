@@ -45,7 +45,24 @@ pub async fn list_connections(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::e
     let response = client.list_connections(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
+}
 
+pub async fn update_connections(State(grpc_info): State<Arc<GrpcInfo>>, Json(connections): Json<Vec<ConnectionBody>>) -> axum::extract::Json<Value> {
+    let grpc_addr = grpc_info.address();
+    let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
+
+    for connection in connections {
+        let uuid = connection.uuid.to_string();
+        let request = tonic::Request::new(connection);
+        client.update_connection(request).await.unwrap();
+        client.reactive_connection(ConnectionUuidRequest { uuid }).await.unwrap();
+    }
+
+    let request = tonic::Request::new(().into());
+
+    let response = client.list_connections(request).await.unwrap();
+    let json_val = serde_json::to_value(response.into_inner()).unwrap();
+    json_val.into()
 }
 
 pub async fn get_hostname(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
@@ -76,7 +93,7 @@ pub async fn get_connection_by_uuid(Path(uuid): Path<String>, State(grpc_info): 
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
-    let request = tonic::Request::new(ConnectionUuidRequest{ uuid});
+    let request = tonic::Request::new(ConnectionUuidRequest{ uuid });
 
     let response = client.get_connection_by_uuid(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();

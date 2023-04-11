@@ -12,6 +12,7 @@ service Network {
     rpc UpdateConnection(ConnectionBody) returns (ConnectionReply);
     rpc GetHostname(google.protobuf.Empty) returns (HostnameReply);
     rpc SetHostname(HostnameBody) returns (HostnameReply);
+    rpc ReactiveConnection(ConnectionUUIDRequest) returns (ConnectionReply);
 }
 
 message HostnameReply {
