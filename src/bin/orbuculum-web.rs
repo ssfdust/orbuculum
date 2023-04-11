@@ -1,18 +1,31 @@
 use axum::routing::{get, put};
 use orbuculum_web::{
     get_connection_by_uuid, health, list_connections, list_devices, update_connection,
+    GrpcInfo
 };
 use tower_http::{
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
 use tracing::{info, Level};
+use std::sync::Arc;
+use structopt::StructOpt;
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "orbuculum-web", about = "Usage information for orbuculum-web.")]
+struct Argument {
+    #[structopt(short, long, default_value = "http://127.0.0.1:15051")]
+    grpc_address: String,
+    #[structopt(default_value = "127.0.0.1:3000")]
+    bind_address: String
+}
 
 #[tokio::main]
 async fn main() {
     env_logger::init();
-
-    let addr = "0.0.0.0:3000";
+    let args = Argument::from_args();
+    let state = Arc::new(GrpcInfo::new(&args.grpc_address));
+    let addr = args.bind_address.parse().unwrap();
 
     // Build our application by creating our router.
     let app = axum::Router::new()
@@ -33,12 +46,13 @@ async fn main() {
                 ),
         )
         // healthz without tracing
-        .route("/healthz", get(health));
+        .route("/healthz", get(health))
+        .with_state(state);
 
     info!("Web starts at {}", addr);
 
     // Run our application as a hyper server on http://localhost:3000.
-    axum::Server::bind(&addr.parse().unwrap())
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();

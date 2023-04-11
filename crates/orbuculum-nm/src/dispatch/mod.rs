@@ -14,10 +14,13 @@
 //! - `connections`: provides functions related to nm connections.
 //!     - List all connections.
 //!     - Create a new wired connection.
+//! - `hostname`: provides functions related to the hostname.
 pub mod connections;
 pub mod devices;
 pub mod ipconfigs;
+pub mod hostname;
 use self::connections::get_connection;
+use self::hostname::{get_hostname, set_hostname};
 
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{
@@ -42,6 +45,8 @@ pub fn dispatch_command_requests(
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
         NetworkCommand::GetConnection(uuid) => spawn(get_connection(uuid), responder),
         NetworkCommand::Reactive(uuid) => spawn(reactive_connection(uuid), responder),
+        NetworkCommand::GetHostname => spawn(get_hostname(), responder),
+        NetworkCommand::SetHostname(hostname) => spawn(set_hostname(hostname), responder),
         NetworkCommand::UpdateConnection(connection) => {
             spawn(update_connection(connection), responder)
         }

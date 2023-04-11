@@ -24,8 +24,9 @@ use tower::{Layer, Service};
 /// the server as an extension.
 pub fn create_server(
     shared_state: Arc<State>,
+    bind_address: String
 ) -> impl Future<Output = Result<(), tonic::transport::Error>> {
-    let addr = "127.0.0.1:50051".parse().unwrap();
+    let addr = bind_address.parse().unwrap();
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(NETWROK_FILE_DESCRIPTOR_SET)
         .build()

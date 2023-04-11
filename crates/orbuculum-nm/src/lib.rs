@@ -40,7 +40,9 @@ pub enum NetworkCommand {
     CreateWiredConnection(String, String),
     ListConnections,
     GetConnection(String),
+    GetHostname,
     // modify
+    SetHostname(String),
     SetManage(String, bool),
     UpdateConnection(Value),
     Reactive(String),
