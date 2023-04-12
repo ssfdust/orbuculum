@@ -53,14 +53,13 @@ pub async fn update_connections(State(grpc_info): State<Arc<GrpcInfo>>, Json(con
 
     // Update connections one by one
     for connection in connections {
-        let uuid = connection.uuid.to_string();
         let request = tonic::Request::new(connection);
         client.update_connection(request).await.unwrap();
     }
 
     // Restart overall network
     let request = tonic::Request::new(().into());
-    let response = client.restart_networking(request).await.unwrap();
+    client.restart_networking(request).await.unwrap();
 
     // get current network connections
     let request = tonic::Request::new(().into());
