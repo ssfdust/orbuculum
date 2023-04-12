@@ -1,7 +1,8 @@
-use axum::routing::{get, put};
+use axum::routing::{get, put, post};
 use orbuculum_web::{
     get_connection_by_uuid, health, list_connections, list_devices, update_connection,
-    GrpcInfo, get_hostname, set_hostname, update_connections
+    GrpcInfo, get_hostname, set_hostname, update_connections, get_networking, set_networking,
+    restart_networking
 };
 use tower_http::{
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
@@ -34,6 +35,8 @@ async fn main() {
         .route("/api/proxy/connections", get(list_connections).post(update_connections))
         .route("/api/proxy/connection/:uuid", get(get_connection_by_uuid))
         .route("/api/proxy/connection", put(update_connection))
+        .route("/api/proxy/networking", get(get_networking).patch(set_networking))
+        .route("/api/proxy/restart", post(restart_networking))
         // health with tracing
         .route("/health", get(health))
         .layer(

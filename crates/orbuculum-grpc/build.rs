@@ -17,6 +17,14 @@ fn main() {
         .type_attribute("Routes", "#[derive(serde::Deserialize,serde::Serialize)]")
         .type_attribute("Netinfo", "#[derive(serde::Deserialize,serde::Serialize)]")
         .type_attribute(
+            "NetworkingStateBody",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
+        .type_attribute(
+            "NetworkingStateReply",
+            "#[derive(serde::Deserialize,serde::Serialize)]",
+        )
+        .type_attribute(
             "HostnameReply",
             "#[derive(serde::Deserialize,serde::Serialize)]",
         )

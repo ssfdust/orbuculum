@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use orbuculum_grpc::{NetworkClient, ConnectionUuidRequest, ConnectionBody, HostnameBody};
+use orbuculum_grpc::{NetworkClient, ConnectionUuidRequest, ConnectionBody, HostnameBody, NetworkingStateBody};
 use axum::extract::{Path, Json, State};
 use axum::http::StatusCode;
 use serde_json::Value;
@@ -51,15 +51,19 @@ pub async fn update_connections(State(grpc_info): State<Arc<GrpcInfo>>, Json(con
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
+    // Update connections one by one
     for connection in connections {
         let uuid = connection.uuid.to_string();
         let request = tonic::Request::new(connection);
         client.update_connection(request).await.unwrap();
-        client.reactive_connection(ConnectionUuidRequest { uuid }).await.unwrap();
     }
 
+    // Restart overall network
     let request = tonic::Request::new(().into());
+    let response = client.restart_networking(request).await.unwrap();
 
+    // get current network connections
+    let request = tonic::Request::new(().into());
     let response = client.list_connections(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
@@ -108,6 +112,41 @@ pub async fn update_connection(State(grpc_info): State<Arc<GrpcInfo>>, Json(conn
     let request = tonic::Request::new(connection);
 
     let response = client.update_connection(request).await.unwrap();
+    let json_val = serde_json::to_value(response.into_inner()).unwrap();
+    json_val.into()
+
+}
+
+pub async fn get_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
+    let grpc_addr = grpc_info.address();
+    let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
+
+    let request = tonic::Request::new(().into());
+
+    let response = client.get_networking(request).await.unwrap();
+    let json_val = serde_json::to_value(response.into_inner()).unwrap();
+    json_val.into()
+
+}
+
+pub async fn set_networking(State(grpc_info): State<Arc<GrpcInfo>>, Json(networking_state): Json<NetworkingStateBody>) -> axum::extract::Json<Value> {
+    let grpc_addr = grpc_info.address();
+    let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
+
+    let request = tonic::Request::new(networking_state);
+
+    let response = client.set_networking(request).await.unwrap();
+    let json_val = serde_json::to_value(response.into_inner()).unwrap();
+    json_val.into()
+}
+
+pub async fn restart_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
+    let grpc_addr = grpc_info.address();
+    let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
+
+    let request = tonic::Request::new(().into());
+
+    let response = client.restart_networking(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
 

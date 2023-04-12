@@ -16,12 +16,9 @@ async fn test_hostname(#[future] start_instance: Arc<State>) {
     let async_wrapper = |start_instance_ref: Arc<State>| {
         Box::pin(async move {
             let cloned_state = start_instance_ref.clone();
-            let resp = send_command(
-                start_instance_ref,
-                NetworkCommand::GetHostname,
-            )
-            .await
-            .unwrap();
+            let resp = send_command(start_instance_ref, NetworkCommand::GetHostname)
+                .await
+                .unwrap();
             let ret = resp.into_value().unwrap();
             let hostname = ret.as_str().unwrap();
             assert_eq!(hostname, "rocky9");

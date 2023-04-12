@@ -24,7 +24,7 @@ use tower::{Layer, Service};
 /// the server as an extension.
 pub fn create_server(
     shared_state: Arc<State>,
-    bind_address: String
+    bind_address: String,
 ) -> impl Future<Output = Result<(), tonic::transport::Error>> {
     let addr = bind_address.parse().unwrap();
     let reflection_service = tonic_reflection::server::Builder::configure()

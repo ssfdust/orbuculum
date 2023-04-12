@@ -97,8 +97,10 @@ impl Initlizer {
             .unwrap();
             send_command(
                 self.state.clone(),
-                NetworkCommand::Reactive(uuid.to_owned())
-            ).await.unwrap();
+                NetworkCommand::Reactive(uuid.to_owned()),
+            )
+            .await
+            .unwrap();
         }
     }
 

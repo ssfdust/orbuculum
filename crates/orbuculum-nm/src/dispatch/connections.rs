@@ -8,7 +8,7 @@
 //! - delete_connection
 use super::{create_client, NetworkResponse};
 use crate::net::NetInfo;
-use eyre::{Result, ContextCompat};
+use eyre::{ContextCompat, Result};
 use glib::future_with_timeout;
 use ipnet::IpNet;
 use libc::{AF_INET, AF_INET6};
@@ -101,12 +101,25 @@ pub async fn rename_connection(conn_uuid: String, new_name: String) -> Result<Ne
 /// Reactive a connection by UUID
 pub async fn reactive_connection(uuid: String) -> Result<NetworkResponse> {
     let client = create_client().await?;
-    let connection = client.connection_by_uuid(&uuid).wrap_err("Failed to get connection uuid when reactive")?;
-    let interface = connection.interface_name().map(|x| x.to_string()).wrap_err("Failed to get interface")?;
-    let device = client.device_by_iface(&interface).wrap_err("Failed to get interface from connection")?;
-    let active_connection = device.active_connection().wrap_err("The interface has no active connection")?;
-    client.deactivate_connection_future(&active_connection).await?;
-    client.activate_connection_future(Some(&connection), Some(&device), None).await?;
+    let connection = client
+        .connection_by_uuid(&uuid)
+        .wrap_err("Failed to get connection uuid when reactive")?;
+    let interface = connection
+        .interface_name()
+        .map(|x| x.to_string())
+        .wrap_err("Failed to get interface")?;
+    let device = client
+        .device_by_iface(&interface)
+        .wrap_err("Failed to get interface from connection")?;
+    let active_connection = device
+        .active_connection()
+        .wrap_err("The interface has no active connection")?;
+    client
+        .deactivate_connection_future(&active_connection)
+        .await?;
+    client
+        .activate_connection_future(Some(&connection), Some(&device), None)
+        .await?;
     Ok(NetworkResponse::Success)
 }
 

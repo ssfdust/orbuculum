@@ -15,17 +15,20 @@
 //!     - List all connections.
 //!     - Create a new wired connection.
 //! - `hostname`: provides functions related to the hostname.
+//! - `networking`: Control whether overall networking is enabled or disabled.
 pub mod connections;
 pub mod devices;
-pub mod ipconfigs;
 pub mod hostname;
+pub mod ipconfigs;
+pub mod networking;
 use self::connections::get_connection;
 use self::hostname::{get_hostname, set_hostname};
+use self::networking::{set_networking, get_networking};
 
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{
-    create_wired_connection, delete_connection, list_connections, rename_connection,
-    update_connection, reactive_connection
+    create_wired_connection, delete_connection, list_connections, reactive_connection,
+    rename_connection, update_connection,
 };
 use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
@@ -43,6 +46,8 @@ pub fn dispatch_command_requests(
     let NetworkRequest { responder, command } = command_request;
     match command {
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
+        NetworkCommand::SetNetworking(state) => spawn(set_networking(state), responder),
+        NetworkCommand::GetNetworking => spawn(get_networking(), responder),
         NetworkCommand::GetConnection(uuid) => spawn(get_connection(uuid), responder),
         NetworkCommand::Reactive(uuid) => spawn(reactive_connection(uuid), responder),
         NetworkCommand::GetHostname => spawn(get_hostname(), responder),

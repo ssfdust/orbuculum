@@ -13,6 +13,20 @@ service Network {
     rpc GetHostname(google.protobuf.Empty) returns (HostnameReply);
     rpc SetHostname(HostnameBody) returns (HostnameReply);
     rpc ReactiveConnection(ConnectionUUIDRequest) returns (ConnectionReply);
+    rpc GetNetworking(google.protobuf.Empty) returns (NetworkingStateReply);
+    rpc SetNetworking(NetworkingStateBody) returns (NetworkingStateReply);
+    rpc RestartNetworking(google.protobuf.Empty) returns (NetworkingStateReply);
+}
+
+
+message NetworkingStateReply {
+    int32 code = 1;
+    string msg = 2;
+    NetworkingStateBody data = 3;
+}
+
+message NetworkingStateBody {
+    bool state = 1;
 }
 
 message HostnameReply {
