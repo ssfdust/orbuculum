@@ -3,6 +3,32 @@ name = "orbuculum"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = ["crates/*"]
+
+[workspace.dependencies]
+glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.18.0" }
+nm = { git = "https://github.com/balena-io-modules/libnm-rs.git", version = "0.4.0" }
+eyre = "0.6.8"
+tokio = { version = "1.23.0", features = ["full"] }
+serde_json = "1.0.93"
+serde = { version = "1.0.158", features = ["derive"] }
+rstest = "0.17.0"
+temp_testdir = "0.2.3"
+serde_derive = "1.0.152"
+futures = "0.3.27"
+tracing = "0.1.37"
+env_logger = "0.10.0"
+log = "0.4.17"
+axum = "0.6.12"
+tonic = "0.8.3"
+hyper = "0.14.23"
+orbuculum-nm = { version = "0.0.1", path = "crates/orbuculum-nm" }
+orbuculum-grpc = { version = "0.0.1", path = "crates/orbuculum-grpc" }
+orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }
+orbuculum-web = { version = "0.1.0", path = "crates/orbuculum-web" }
+tower-http = { version = "0.4.0", features = ["trace"] }
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
@@ -12,20 +38,40 @@ name = "orbuculum-web"
 name = "orbuculum-rhai"
 
 [dependencies]
-env_logger = "0.10.0"
-futures = "0.3.25"
-hyper = "0.14.23"
-glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.18.0" }
-lazy_static = "1.4.0"
-log = "0.4.17"
-orbuculum-nm = { version = "0.0.1", path = "crates/orbuculum-nm" }
-orbuculum-grpc = { version = "0.0.1", path = "crates/orbuculum-grpc" }
-orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }
-tokio = { version = "1.23.0", features = ["full"] }
-tower-http = { version = "0.4.0", features = ["trace"] }
-tracing = "0.1.37"
-udev = "0.7.0"
-serde_json = "1.0.95"
-axum = "0.6.12"
-orbuculum-web = { version = "0.1.0", path = "crates/orbuculum-web" }
+env_logger = { workspace = true }
+futures = { workspace = true }
+hyper = { workspace = true }
+log = { workspace = true }
+tokio = { workspace = true }
+tower-http = { workspace = true }
+tracing = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true }
+orbuculum-nm = { workspace = true }
+orbuculum-grpc = { workspace = true }
+orbuculum-rules = { workspace = true }
+orbuculum-web = { workspace = true }
 structopt = "0.3.26"
+
+[features]
+v1_2 = ['orbuculum-nm/v1_2']
+v1_4 = ['orbuculum-nm/v1_4', 'v1_2']
+v1_6 = ['orbuculum-nm/v1_6', 'v1_4']
+v1_8 = ['orbuculum-nm/v1_8', 'v1_6']
+v1_10 = ['orbuculum-nm/v1_10', 'v1_8']
+v1_12 = ['orbuculum-nm/v1_12', 'v1_10']
+v1_14 = ['orbuculum-nm/v1_14', 'v1_12']
+v1_16 = ['orbuculum-nm/v1_16', 'v1_14']
+v1_18 = ['orbuculum-nm/v1_18', 'v1_16']
+v1_20 = ['orbuculum-nm/v1_20', 'v1_18']
+v1_22 = ['orbuculum-nm/v1_22', 'v1_20']
+v1_24 = ['orbuculum-nm/v1_24', 'v1_22']
+v1_26 = ['orbuculum-nm/v1_26', 'v1_24']
+v1_28 = ['orbuculum-nm/v1_28', 'v1_26']
+v1_30 = ['orbuculum-nm/v1_30', 'v1_28']
+v1_32 = ['orbuculum-nm/v1_32', 'v1_30']
+v1_34 = ['orbuculum-nm/v1_34', 'v1_32']
+v1_36 = ['orbuculum-nm/v1_36', 'v1_34']
+v1_38 = ['orbuculum-nm/v1_38', 'v1_36']
+v1_40 = ['orbuculum-nm/v1_40', 'v1_38']
+default = ['v1_40']

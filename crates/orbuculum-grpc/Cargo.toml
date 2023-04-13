@@ -6,20 +6,20 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+eyre = { workspace = true }
+futures = { workspace = true }
+glib = { workspace = true }
+serde_json = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true }
+env_logger = { workspace = true }
+hyper = { workspace = true }
+log = { workspace = true }
+tonic = { workspace = true }
+orbuculum-nm = { workspace = true }
+orbuculum-rules = { workspace = true }
 bytes = "1.4.0"
-env_logger = "0.10.0"
-eyre = "0.6.8"
-futures = "0.3.25"
-glib = { git = "https://github.com/gtk-rs/gtk-rs-core.git", version = "0.18.0" }
-hyper = "0.14.23"
-log = "0.4.17"
-orbuculum-nm = { version = "0.0.1", path = "../orbuculum-nm" }
-orbuculum-rules = { version = "0.0.1", path = "../orbuculum-rules" }
 prost = "0.11.5"
-serde = { version = "1.0.154", features = ["derive"] }
-serde_json = "1.0.94"
-tokio = { version = "1.23.0", features = ["macros", "rt-multi-thread"] }
-tonic = { version = "0.8.3" }
 tonic-reflection = "0.6.0"
 tower = "0.4.13"
 
