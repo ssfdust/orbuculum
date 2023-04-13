@@ -15,16 +15,19 @@ use nm::{DBUS_INTERFACE, DBUS_PATH};
 pub async fn set_networking(state: bool) -> Result<NetworkResponse> {
     let client = create_client().await?;
     let networking_status = glib::Variant::tuple_from_iter(vec![glib::Variant::from(state)]);
-    client
-        .dbus_call_future(
-            DBUS_PATH.as_str(),
-            DBUS_INTERFACE.as_str(),
-            "Enable",
-            Some(&networking_status),
-            None,
-            2000,
-        )
-        .await?;
+    let current_status = client.is_networking_enabled();
+    if current_status != state {
+        client
+            .dbus_call_future(
+                DBUS_PATH.as_str(),
+                DBUS_INTERFACE.as_str(),
+                "Enable",
+                Some(&networking_status),
+                None,
+                2000,
+            )
+            .await?;
+    }
     Ok(NetworkResponse::Success)
 }
 

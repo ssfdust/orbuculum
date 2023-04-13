@@ -6,7 +6,7 @@ use super::{create_client, NetworkResponse};
 use crate::net::NetInfo;
 use crate::utils::nm_display;
 use eyre::Result;
-use nm::{ActiveConnectionExt, ConnectionExt};
+use nm::{ActiveConnectionExt, ConnectionExt, Device};
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -60,6 +60,11 @@ fn get_latest_connection(
         ts_b.cmp(&ts_a)
     });
     connections.get(0)
+}
+
+pub fn get_managed_status(device: &Device) -> bool {
+    use nm::DeviceExt;
+    device.is_managed()
 }
 
 /// List all interfaces with network manager connection names.
@@ -177,16 +182,18 @@ pub async fn set_manage(device_name: String, is_managed: bool) -> Result<Network
     if let Some(device) = client.device_by_iface(&device_name) {
         if let Some(device_object_path) = device.path().map(|x| x.to_string()) {
             let managed_status = glib::Variant::from(is_managed);
-
-            client
-                .dbus_set_property_future(
-                    &device_object_path,
-                    &device_interface,
-                    "Managed",
-                    &managed_status,
-                    2000,
-                )
-                .await?;
+            let current_status = get_managed_status(&device);
+            if current_status != is_managed {
+                client
+                    .dbus_set_property_future(
+                        &device_object_path,
+                        &device_interface,
+                        "Managed",
+                        &managed_status,
+                        2000,
+                    )
+                    .await?;
+            }
         }
     } else {
         bail!("The given network device is not found.")

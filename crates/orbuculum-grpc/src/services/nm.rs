@@ -1,4 +1,6 @@
-use crate::network_grpc::{ConnectionsReply, HostnameBody, HostnameReply, NetworkingStateBody, NetworkingStateReply};
+use crate::network_grpc::{
+    ConnectionsReply, HostnameBody, HostnameReply, NetworkingStateBody, NetworkingStateReply,
+};
 
 use super::super::{ConnectionBody, ConnectionReply, ConnectionUuidRequest, DevicesReply, Network};
 use eyre::{ContextCompat, Result};
@@ -223,7 +225,7 @@ impl Network for NetworkService {
         send_command(shared_state, NetworkCommand::SetNetworking(request_state))
             .await
             .unwrap();
-        let data = serde_json::from_value(json!({"state": request_state})).unwrap();
+        let data = serde_json::from_value(json!({ "state": request_state })).unwrap();
         Ok(Response::new(NetworkingStateReply {
             code: 0,
             msg: "Sucessful".into(),
@@ -242,12 +244,18 @@ impl Network for NetworkService {
             .unwrap();
         let value = resp.into_value().unwrap();
         let cur_state = value["state"].as_bool().unwrap();
-        send_command(shared_state.clone(), NetworkCommand::SetNetworking(!cur_state))
-            .await
-            .unwrap();
-        send_command(shared_state.clone(), NetworkCommand::SetNetworking(cur_state))
-            .await
-            .unwrap();
+        send_command(
+            shared_state.clone(),
+            NetworkCommand::SetNetworking(!cur_state),
+        )
+        .await
+        .unwrap();
+        send_command(
+            shared_state.clone(),
+            NetworkCommand::SetNetworking(cur_state),
+        )
+        .await
+        .unwrap();
         let data = serde_json::from_value(value).unwrap();
         Ok(Response::new(NetworkingStateReply {
             code: 0,

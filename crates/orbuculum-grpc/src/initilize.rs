@@ -104,6 +104,17 @@ impl Initlizer {
         }
     }
 
+    async fn update_managed_state(&self, device_info: &Value) {
+        let managed_state = device_info["is_managed"].as_bool().unwrap_or(false);
+        let device = device_info["name"].as_str().map(|x| x.to_string()).unwrap();
+        send_command(
+            self.state.clone(),
+            NetworkCommand::SetManage(device, managed_state),
+        )
+        .await
+        .unwrap();
+    }
+
     async fn init_connections(&self) -> Result<()> {
         let devices_val = serde_json::to_value(&self.devices)?;
         let sorted_devices = get_desired_devices(&self.nicrule_file, &devices_val)
@@ -148,6 +159,7 @@ impl Initlizer {
 
                 self.update_configuration(&device_info, &uuid).await;
             };
+            self.update_managed_state(&device_info).await;
         }
         Ok(())
     }
