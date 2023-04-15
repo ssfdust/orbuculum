@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate eyre;
-mod initilize;
+mod initialize;
 mod server;
 mod services;
-pub use initilize::initilize_network_manager;
+pub use initialize::initialize_network_manager;
 pub use server::create_server;
 use services::nm::NetworkService;
 

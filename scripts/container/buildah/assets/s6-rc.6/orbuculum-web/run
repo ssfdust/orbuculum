@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+/usr/bin/orbuculum-web --grpc-address http://127.0.0.1:15051 0.0.0.0:9094

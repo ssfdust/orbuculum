@@ -1,0 +1,2 @@
+#!/command/execlineb -P
+/usr/bin/orbuculum 0.0.0.0:15051

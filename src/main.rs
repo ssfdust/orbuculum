@@ -1,6 +1,6 @@
 extern crate orbuculum_grpc;
 extern crate orbuculum_nm;
-use orbuculum_grpc::{create_server, initilize_network_manager};
+use orbuculum_grpc::{create_server, initialize_network_manager};
 use orbuculum_nm::{create_channel, gather_link_modes, run_network_manager_loop, State};
 use std::sync::Arc;
 use std::thread;
@@ -10,7 +10,7 @@ use structopt::StructOpt;
 #[structopt(name = "orbuculum", about = "Usage information for orbuculum.")]
 struct Argument {
     #[structopt(short, long)]
-    no_initilize: bool,
+    no_initialize: bool,
     #[structopt(default_value = "127.0.0.1:15051")]
     bind_address: String,
 }
@@ -30,8 +30,8 @@ async fn main() {
 
     let shared_state = Arc::new(State::new(glib_sender));
 
-    if !args.no_initilize {
-        initilize_network_manager(shared_state.clone(), "/etc/orbuculum/nic.rules".to_owned())
+    if !args.no_initialize {
+        initialize_network_manager(shared_state.clone(), "/etc/orbuculum/nic.rules".to_owned())
             .await;
     }
     create_server(shared_state, args.bind_address)

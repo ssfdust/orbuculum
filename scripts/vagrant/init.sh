@@ -1,6 +1,6 @@
 #!/bin/sh
 set -e
-[ -f /etc/.initilized ] && exit 0
+[ -f /etc/.initialized ] && exit 0
 
 # Prepare environment
 sed -i '/\[crb\]/,/enabled/s/enabled=0/enabled=1/' /etc/yum.repos.d/rocky.repo
@@ -19,4 +19,4 @@ runuser -u vagrant -- /home/vagrant/.cargo/bin/rustup default nightly
 echo "source ~/.cargo/env" | tee -a /home/vagrant/.bashrc
 echo "export CARGO_TARGET_DIR=/home/vagrant/target" | tee -a /home/vagrant/.bashrc
 
-touch /etc/.initilized
+touch /etc/.initialized

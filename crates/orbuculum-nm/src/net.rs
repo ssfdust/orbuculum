@@ -13,7 +13,7 @@ use std::net::IpAddr;
 /// A representation of the net information
 ///
 /// The `NetInfo` type is a combination of addresses, gateway, dns and routes.
-/// The method is to idenitify how the net is initilized.
+/// The method is to idenitify how the net is initialized.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct NetInfo {
     pub method: String,

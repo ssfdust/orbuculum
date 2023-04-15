@@ -1111,7 +1111,7 @@ checksum = "b7e5500299e16ebb147ae15a00a942af264cf3688f47923b8fc2cd5858f23ad3"
 
 [[package]]
 name = "orbuculum"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "axum",
  "env_logger",
@@ -1205,7 +1205,7 @@ dependencies = [
 
 [[package]]
 name = "orbuculum-web"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "axum",
  "env_logger",

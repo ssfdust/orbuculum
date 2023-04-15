@@ -19,7 +19,7 @@ use tokio::macros::support::Future;
 use tonic::{body::BoxBody, transport::Server};
 use tower::{Layer, Service};
 
-/// Before creating the server instance, we have to initilize the shared state
+/// Before creating the server instance, we have to initialize the shared state
 /// between the gio thread and the tonic thread, and pass the shared state to
 /// the server as an extension.
 pub fn create_server(

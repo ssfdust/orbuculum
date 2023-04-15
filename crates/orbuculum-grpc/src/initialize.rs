@@ -165,7 +165,7 @@ impl Initlizer {
     }
 }
 
-pub async fn initilize_network_manager(state: Arc<State>, nicrule_file: String) {
-    let initilizer = Initlizer::new_future(nicrule_file, state).await.unwrap();
-    initilizer.init_connections().await.unwrap();
+pub async fn initialize_network_manager(state: Arc<State>, nicrule_file: String) {
+    let initializer = Initlizer::new_future(nicrule_file, state).await.unwrap();
+    initializer.init_connections().await.unwrap();
 }
