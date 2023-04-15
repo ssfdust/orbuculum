@@ -26,7 +26,7 @@ hyper = "0.14.23"
 orbuculum-nm = { version = "0.0.1", path = "crates/orbuculum-nm" }
 orbuculum-grpc = { version = "0.0.1", path = "crates/orbuculum-grpc" }
 orbuculum-rules = { version = "0.0.1", path = "crates/orbuculum-rules" }
-orbuculum-web = { version = "0.1.0", path = "crates/orbuculum-web" }
+orbuculum-web = { version = "0.0.1", path = "crates/orbuculum-web" }
 orbuculum-ctl = { version = "0.0.1", path = "crates/orbuculum-ctl" }
 tower-http = { version = "0.4.0", features = ["trace"] }
 
