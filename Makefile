@@ -16,4 +16,4 @@ deploy-rocky9:
 	cd scripts/container/buildah && bash build-rockylinux-9-no-initialize.sh
 
 podman-run-rocky9:
-	podman run --name orbuculum -d --network=host --privileged -p 15051:15051 -p 9094:9094 -v /dev:/dev -v /sys:/sys -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket docker.io/ssfdust/orbuculum:v0.0.1-rockylinux-9-no-initialize-amd64
+	podman run --name orbuculum -d --network=host --privileged -v /run/udev:/run/udev -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket docker.io/ssfdust/orbuculum:v0.0.1-rockylinux-9-no-initialize-amd64
