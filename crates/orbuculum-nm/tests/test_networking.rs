@@ -19,8 +19,8 @@ async fn test_set_networking(#[future] start_instance: Arc<State>) {
             send_command(start_instance_ref, NetworkCommand::SetNetworking(false))
                 .await
                 .unwrap();
-        let state = context::run_shell_cmd("nmcli networking").unwrap();
-        assert_eq!(state, "disabled");
+            let state = context::run_shell_cmd("nmcli networking").unwrap();
+            assert_eq!(state, "disabled");
         }) as Pin<Box<dyn Future<Output = ()>>>
     };
 
@@ -48,12 +48,12 @@ async fn test_get_networking(#[future] start_instance: Arc<State>) {
                 .unwrap();
             let value = resp.into_value().unwrap();
             let state = value["state"].as_bool().unwrap();
-        let cur_state = context::run_shell_cmd("nmcli networking").unwrap();
-        if cur_state == "disabled" {
-            assert!(!state);
-        } else {
-            assert!(state);
-        }
+            let cur_state = context::run_shell_cmd("nmcli networking").unwrap();
+            if cur_state == "disabled" {
+                assert!(!state);
+            } else {
+                assert!(state);
+            }
         }) as Pin<Box<dyn Future<Output = ()>>>
     };
 

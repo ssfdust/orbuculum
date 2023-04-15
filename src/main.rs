@@ -12,9 +12,8 @@ struct Argument {
     #[structopt(short, long)]
     no_initilize: bool,
     #[structopt(default_value = "127.0.0.1:15051")]
-    bind_address: String
+    bind_address: String,
 }
-
 
 #[tokio::main]
 async fn main() {
@@ -32,7 +31,10 @@ async fn main() {
     let shared_state = Arc::new(State::new(glib_sender));
 
     if !args.no_initilize {
-        initilize_network_manager(shared_state.clone(), "/etc/orbuculum/nic.rules".to_owned()).await;
+        initilize_network_manager(shared_state.clone(), "/etc/orbuculum/nic.rules".to_owned())
+            .await;
     }
-    create_server(shared_state, args.bind_address).await.unwrap();
+    create_server(shared_state, args.bind_address)
+        .await
+        .unwrap();
 }

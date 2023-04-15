@@ -1,9 +1,9 @@
 //! Tearup and teardown functions for testing rules
 //!
-use temp_testdir::TempDir;
-use std::path::PathBuf;
 use std::fs::File;
 use std::io::Write;
+use std::path::PathBuf;
+use temp_testdir::TempDir;
 
 pub fn setup_rule_files_for_nic_type_ord(tempdir: &TempDir) -> PathBuf {
     let mut file_path = PathBuf::from(tempdir.as_ref());

@@ -7,8 +7,8 @@
 use super::create_client;
 use crate::NetworkResponse;
 use eyre::Result;
-use serde_json::json;
 use nm::{DBUS_INTERFACE, DBUS_PATH};
+use serde_json::json;
 
 /// When disabled, all interfaces that NM manages are deactivated.
 /// When enabled, all managed interfaces are available to be activated.
@@ -35,5 +35,5 @@ pub async fn set_networking(state: bool) -> Result<NetworkResponse> {
 pub async fn get_networking() -> Result<NetworkResponse> {
     let client = create_client().await?;
     let state = client.is_networking_enabled();
-    Ok(NetworkResponse::Return(json!({"state": state})))
+    Ok(NetworkResponse::Return(json!({ "state": state })))
 }

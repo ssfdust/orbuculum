@@ -1,6 +1,27 @@
 mod services;
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+mod utils;
+mod views;
+use std::sync::Arc;
+
+use eyre::Result;
+use requestty::ListItem;
+use views::{greeters::greeter, nm::draw_nm_ui};
+use terminal::{Clear, Action};
+
+pub async fn mainloop(grpc_addr: Arc<&str>) -> Result<()> {
+    loop {
+        let terminal = terminal::stdout();
+        terminal.act(Action::ClearTerminal(Clear::All))?;
+        terminal.act(Action::MoveCursorTo(0, 0))?;
+        let some_action = greeter()?;
+        match some_action.as_list_item() {
+            Some(ListItem { index: _, text }) if text == "Network" => {
+                draw_nm_ui(grpc_addr.clone()).await?;
+            }
+            _ => break,
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]

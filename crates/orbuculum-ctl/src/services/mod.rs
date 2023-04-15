@@ -1,1 +1,1 @@
-mod nm;
+pub mod nm;

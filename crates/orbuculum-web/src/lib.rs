@@ -1,11 +1,13 @@
 use std::sync::Arc;
 
-use orbuculum_grpc::{NetworkClient, ConnectionUuidRequest, ConnectionBody, HostnameBody, NetworkingStateBody};
-use axum::extract::{Path, Json, State};
+use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
+use orbuculum_grpc::{
+    ConnectionBody, ConnectionUuidRequest, HostnameBody, NetworkClient, NetworkingStateBody,
+};
 use serde_json::Value;
 pub struct GrpcInfo {
-    address: String
+    address: String,
 }
 
 impl GrpcInfo {
@@ -18,7 +20,6 @@ impl GrpcInfo {
         self.address.clone()
     }
 }
-
 
 pub async fn health() -> StatusCode {
     StatusCode::OK
@@ -33,10 +34,11 @@ pub async fn list_devices(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extra
     let response = client.list_devices(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
-pub async fn list_connections(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
+pub async fn list_connections(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -47,7 +49,10 @@ pub async fn list_connections(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::e
     json_val.into()
 }
 
-pub async fn update_connections(State(grpc_info): State<Arc<GrpcInfo>>, Json(connections): Json<Vec<ConnectionBody>>) -> axum::extract::Json<Value> {
+pub async fn update_connections(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+    Json(connections): Json<Vec<ConnectionBody>>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -77,10 +82,12 @@ pub async fn get_hostname(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extra
     let response = client.get_hostname(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
-pub async fn set_hostname(State(grpc_info): State<Arc<GrpcInfo>>, Json(hostname_json): Json<HostnameBody>) -> axum::extract::Json<Value> {
+pub async fn set_hostname(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+    Json(hostname_json): Json<HostnameBody>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -89,22 +96,26 @@ pub async fn set_hostname(State(grpc_info): State<Arc<GrpcInfo>>, Json(hostname_
     let response = client.set_hostname(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
-pub async fn get_connection_by_uuid(Path(uuid): Path<String>, State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
+pub async fn get_connection_by_uuid(
+    Path(uuid): Path<String>,
+    State(grpc_info): State<Arc<GrpcInfo>>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
-    let request = tonic::Request::new(ConnectionUuidRequest{ uuid });
+    let request = tonic::Request::new(ConnectionUuidRequest { uuid });
 
     let response = client.get_connection_by_uuid(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
-pub async fn update_connection(State(grpc_info): State<Arc<GrpcInfo>>, Json(connection): Json<ConnectionBody>) -> axum::extract::Json<Value> {
+pub async fn update_connection(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+    Json(connection): Json<ConnectionBody>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -113,7 +124,6 @@ pub async fn update_connection(State(grpc_info): State<Arc<GrpcInfo>>, Json(conn
     let response = client.update_connection(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
 pub async fn get_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
@@ -125,10 +135,12 @@ pub async fn get_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::ext
     let response = client.get_networking(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }
 
-pub async fn set_networking(State(grpc_info): State<Arc<GrpcInfo>>, Json(networking_state): Json<NetworkingStateBody>) -> axum::extract::Json<Value> {
+pub async fn set_networking(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+    Json(networking_state): Json<NetworkingStateBody>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -139,7 +151,9 @@ pub async fn set_networking(State(grpc_info): State<Arc<GrpcInfo>>, Json(network
     json_val.into()
 }
 
-pub async fn restart_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum::extract::Json<Value> {
+pub async fn restart_networking(
+    State(grpc_info): State<Arc<GrpcInfo>>,
+) -> axum::extract::Json<Value> {
     let grpc_addr = grpc_info.address();
     let mut client = NetworkClient::connect(grpc_addr).await.unwrap();
 
@@ -148,5 +162,4 @@ pub async fn restart_networking(State(grpc_info): State<Arc<GrpcInfo>>) -> axum:
     let response = client.restart_networking(request).await.unwrap();
     let json_val = serde_json::to_value(response.into_inner()).unwrap();
     json_val.into()
-
 }

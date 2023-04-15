@@ -1,16 +1,16 @@
-use axum::routing::{get, put, post};
+use axum::routing::{get, post, put};
 use orbuculum_web::{
-    get_connection_by_uuid, health, list_connections, list_devices, update_connection,
-    GrpcInfo, get_hostname, set_hostname, update_connections, get_networking, set_networking,
-    restart_networking
+    get_connection_by_uuid, get_hostname, get_networking, health, list_connections, list_devices,
+    restart_networking, set_hostname, set_networking, update_connection, update_connections,
+    GrpcInfo,
 };
+use std::sync::Arc;
+use structopt::StructOpt;
 use tower_http::{
     trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
 use tracing::{info, Level};
-use std::sync::Arc;
-use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "orbuculum-web", about = "Usage information for orbuculum-web.")]
@@ -18,7 +18,7 @@ struct Argument {
     #[structopt(short, long, default_value = "http://127.0.0.1:15051")]
     grpc_address: String,
     #[structopt(default_value = "127.0.0.1:3000")]
-    bind_address: String
+    bind_address: String,
 }
 
 #[tokio::main]
@@ -32,10 +32,16 @@ async fn main() {
     let app = axum::Router::new()
         .route("/api/proxy/devices", get(list_devices))
         .route("/api/proxy/hostname", get(get_hostname).post(set_hostname))
-        .route("/api/proxy/connections", get(list_connections).post(update_connections))
+        .route(
+            "/api/proxy/connections",
+            get(list_connections).post(update_connections),
+        )
         .route("/api/proxy/connection/:uuid", get(get_connection_by_uuid))
         .route("/api/proxy/connection", put(update_connection))
-        .route("/api/proxy/networking", get(get_networking).patch(set_networking))
+        .route(
+            "/api/proxy/networking",
+            get(get_networking).patch(set_networking),
+        )
         .route("/api/proxy/restart", post(restart_networking))
         // health with tracing
         .route("/health", get(health))

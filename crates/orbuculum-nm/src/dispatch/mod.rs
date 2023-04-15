@@ -23,7 +23,7 @@ pub mod ipconfigs;
 pub mod networking;
 use self::connections::get_connection;
 use self::hostname::{get_hostname, set_hostname};
-use self::networking::{set_networking, get_networking};
+use self::networking::{get_networking, set_networking};
 
 use super::{NetworkCommand, NetworkRequest, NetworkResponse, TokioResponder};
 use connections::{
