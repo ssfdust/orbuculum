@@ -62,6 +62,5 @@ pub fn get_left_linenum() -> Result<i32> {
     }
     let left_rows = row - current_row - 2;
     let page_size = (left_rows / 11) * 11 + 2;
-    println!("{}", page_size);
     Ok(page_size)
 }

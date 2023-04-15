@@ -91,6 +91,7 @@ message DevicesReplyBody {
     google.protobuf.StringValue conn_name = 13;
     google.protobuf.StringValue driver = 14;
     ConnectionItem connection = 15;
+    string product_name = 16;
 }
 
 message Routes {

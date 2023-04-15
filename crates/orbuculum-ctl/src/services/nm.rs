@@ -34,6 +34,7 @@ pub fn device_json2info(device: &Value) -> Result<String> {
     let ipv6_dns: Vec<String> = serde_json::from_value(device["ip6info"]["dns"].clone())?;
     let info = format!(
         "Interface: {}\n\
+        Pci: {}\n\
         \n\
         IPv4:\n\
         Addresses: {}\n\
@@ -45,6 +46,7 @@ pub fn device_json2info(device: &Value) -> Result<String> {
         Gateway: {}\n\
         DNS: {}\n",
         device["connection"]["id"].as_str().unwrap_or(""),
+        device["product_name"].as_str().unwrap_or(""),
         ipv4_addresses.join(","),
         device["ip4info"]["gateway"].as_str().unwrap_or(""),
         ipv4_dns.join(","),

@@ -4,9 +4,14 @@ mod views;
 use std::sync::Arc;
 
 use eyre::Result;
-use requestty::ListItem;
+use requestty::{ListItem, Question};
 use views::{greeters::greeter, nm::draw_nm_ui};
 use terminal::{Clear, Action};
+
+fn enter_to_continue() {
+    let question = Question::input("enter").message("Please enter to continue").build();
+    requestty::prompt_one(question).unwrap();
+}
 
 pub async fn mainloop(grpc_addr: Arc<&str>) -> Result<()> {
     loop {
@@ -20,6 +25,7 @@ pub async fn mainloop(grpc_addr: Arc<&str>) -> Result<()> {
             }
             _ => break,
         }
+        enter_to_continue();
     }
     Ok(())
 }

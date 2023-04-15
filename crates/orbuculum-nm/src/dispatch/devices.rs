@@ -42,6 +42,7 @@ pub struct NetDevice {
     pub dev_path: Option<String>,
     /// The udev property `ID_PATH` of the network device
     pub id_path: Option<String>,
+    pub product_name: Option<String>,
     pub net_link_modes: Vec<String>,
 }
 
@@ -89,6 +90,11 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                     let is_managed = device.is_managed();
                     let iface_clone = interface.clone();
                     let device_type = nm_display(device.device_type());
+                    let product_name = Some(format!(
+                        "{} {}",
+                        device.vendor().map(|x| x.to_string()).unwrap_or_default(),
+                        device.product().map(|x| x.to_string()).unwrap_or_default()
+                    ));
                     let conn = device
                         .available_connections()
                         .into_iter()
@@ -156,6 +162,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         dev_path,
                         id_path,
                         device_type,
+                        product_name,
                         mac: mac.to_string(),
                         conn,
                         net_link_modes,
