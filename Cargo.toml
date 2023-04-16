@@ -80,3 +80,10 @@ v1_36 = ['orbuculum-nm/v1_36']
 v1_38 = ['orbuculum-nm/v1_38']
 v1_40 = ['orbuculum-nm/v1_40']
 default = ['v1_40']
+
+
+[profile.release]
+lto = true
+panic = 'abort'
+opt-level = 'z'
+codegen-units = 1

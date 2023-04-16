@@ -7,5 +7,10 @@ sed -e 's|^mirrorlist=|#mirrorlist=|g' \
     /etc/yum.repos.d/Rocky-BaseOS.repo \
     /etc/yum.repos.d/Rocky-Extras.repo \
     /etc/yum.repos.d/Rocky-PowerTools.repo
-dnf makecache
-dnf update -y
+if command -v dnf; then
+    dnf makecache
+    dnf update -y
+else
+    microdnf makecache
+    microdnf update -y
+fi
