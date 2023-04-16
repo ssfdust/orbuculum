@@ -1,10 +1,10 @@
 //! The Network view
 use crate::services::nm::{
-    connection_json2info, device_json2info, edit_connection, get_connection, get_devices, update_connection,
+    connection_json2info, device_json2info, edit_connection, get_connection, get_devices, update_connection, restart_networking,
 };
 use crate::utils::{QuestionOnce, QuestionText};
 use eyre::{ContextCompat, Result};
-use requestty::{prompt_one, Question};
+use requestty::{prompt_one, Question, question};
 use std::sync::Arc;
 
 pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
@@ -52,12 +52,27 @@ pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
         );
         let ipmethod = once_question.execute()?;
         let new_connection = edit_connection(ipmethod, ipversion, &connection, ask_for_connection);
-        match update_connection(grpc_addr, &new_connection).await {
-            Ok(()) => println!("Connection updated"),
+        match update_connection(grpc_addr.clone(), &new_connection).await {
+            Ok(()) => {
+                println!("Connection updated");
+                ask_for_restart(grpc_addr.clone()).await?;
+            },
             _ => println!("Connection updated failed.")
         }
     }
 
+    Ok(())
+}
+
+async fn ask_for_restart(grpc_addr: Arc<&str>) -> Result<()> {
+    let question = Question::confirm("restart")
+        .message("Do you want to restart network now?")
+        .build();
+    let answer = prompt_one(question)?;
+    let if_restart = answer.as_bool().unwrap_or(false);
+    if if_restart {
+        restart_networking(grpc_addr).await?;
+    }
     Ok(())
 }
 

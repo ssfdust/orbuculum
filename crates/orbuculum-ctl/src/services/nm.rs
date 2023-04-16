@@ -148,3 +148,9 @@ where T: FnOnce(&str) -> (Vec<String>, String, Vec<String>)
     new_connection
 }
 
+pub async fn restart_networking(grpc_addr: Arc<&str>) -> Result<()> {
+    let mut client = NetworkClient::connect(grpc_addr.to_string()).await?;
+    let request = tonic::Request::new(().into());
+    client.restart_networking(request).await?;
+    Ok(())
+}

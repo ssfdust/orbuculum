@@ -71,6 +71,15 @@ impl Initlizer {
         })
     }
 
+    async fn restart_networking(&self) -> Result<()> {
+        println!("Restarting network at startup!");
+        match send_command(self.state.clone(), NetworkCommand::SetNetworking(false)).await {
+            _ => ()
+        }
+        send_command(self.state.clone(), NetworkCommand::SetNetworking(true)).await?;
+        Ok(())
+    }
+
     async fn update_configuration(&self, device_info: &Value, uuid: &str) {
         if device_info["ip4info"].is_object() || device_info["ip6info"].is_object() {
             let resp = send_command(
@@ -95,12 +104,14 @@ impl Initlizer {
             )
             .await
             .unwrap();
-            send_command(
+            match send_command(
                 self.state.clone(),
                 NetworkCommand::Reactive(uuid.to_owned()),
             )
-            .await
-            .unwrap();
+            .await {
+                _ => eprintln!("Failed to activate {}", uuid)
+            }
+
         }
     }
 
@@ -115,10 +126,11 @@ impl Initlizer {
         .unwrap();
     }
 
-    async fn init_connections(&self) -> Result<()> {
+    async fn init_connections(&self) -> Result<bool> {
         let devices_val = serde_json::to_value(&self.devices)?;
         let sorted_devices = get_desired_devices(&self.nicrule_file, &devices_val)
             .expect("Fail to get devices info");
+        let mut need_start = false;
         for device_info in sorted_devices {
             let device_name = device_info["name"]
                 .as_str()
@@ -133,12 +145,19 @@ impl Initlizer {
                 .get("uuid")
                 .expect("no uuid in connection object");
             if let Some(uuid) = current_uuid.as_str() {
-                send_command(
-                    self.state.clone(),
-                    NetworkCommand::RenameConnection(uuid.to_owned(), conn_name.to_owned()),
-                )
-                .await?;
+                let current_name = current_connection["id"].as_str().unwrap_or("");
+                if current_name != conn_name {
+                    println!("uuid: {}, current connection name: {}, new connection name:{}", uuid, current_name, conn_name);
+                    need_start = true;
+                    send_command(
+                        self.state.clone(),
+                        NetworkCommand::RenameConnection(uuid.to_owned(), conn_name.to_owned()),
+                    )
+                    .await?;
+                }
             } else {
+                need_start = true;
+                println!("Creating new connection {} for {}", conn_name, device_name);
                 let resp = send_command(
                     self.state.clone(),
                     NetworkCommand::CreateWiredConnection(
@@ -161,11 +180,14 @@ impl Initlizer {
             };
             self.update_managed_state(&device_info).await;
         }
-        Ok(())
+        Ok(need_start)
     }
 }
 
 pub async fn initialize_network_manager(state: Arc<State>, nicrule_file: String) {
     let initializer = Initlizer::new_future(nicrule_file, state).await.unwrap();
-    initializer.init_connections().await.unwrap();
+    let need_start = initializer.init_connections().await.unwrap();
+    if need_start {
+        initializer.restart_networking().await.unwrap();
+    }
 }

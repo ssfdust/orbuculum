@@ -24,13 +24,13 @@ fn modify_connections(devices, device_type) {
     }
 
     if len(new_devices) > 0 {
-        new_devices[-1].ip4info = {};
+        new_devices[-1].ip4info = #{};
         new_devices[-1].ip4info.addresses = ["192.168.100.1/24"];
         new_devices[-1].ip4info.dns = ["192.168.100.1"];
         new_devices[-1].ip4info.method = "manual";
         new_devices[-1].ip4info.gateway = "192.168.100.1";
-        new_devices[-2].is_managed = false;
     }
+
     return new_devices;
 }
 
