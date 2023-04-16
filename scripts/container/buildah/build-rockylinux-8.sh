@@ -45,5 +45,5 @@ buildah config --entrypoint /init --env RUST_LOG=info $commit_container
 
 buildah umount $container
 buildah rm $container
-buildah commit $commit_container docker.io/ssfdust/orbuculum:v0.0.1-rockylinux-8-amd64
+buildah commit $commit_container docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-amd64
 buildah rm $commit_container
