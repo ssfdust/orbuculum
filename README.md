@@ -28,6 +28,7 @@ Docker
 
 ```bash
 sudo docker run --name orbuculum -d \
+    --replace \
     --network=host \
     --privileged \
     -v /run/udev:/run/udev \
@@ -40,6 +41,7 @@ sudo docker run --name orbuculum -d \
 
 ```bash
 sudo docker run --name orbuculum -d \
+    --replace \
     --network=host \
     --privileged \
     -v /run/udev:/run/udev \
@@ -48,12 +50,26 @@ sudo docker run --name orbuculum -d \
     docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-amd64
 ```
 
+### open Euler 22.03 LTS
+
+```bash
+sudo docker run --name orbuculum -d \
+    --replace \
+    --network=host \
+    --privileged \
+    -v /run/udev:/run/udev \
+    -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
+    -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-openeuler-22.03-lts-amd64
+```
+
 ### Testing
 
 #### Rockylinux 8
 
 ```bash
 sudo docker run --name orbuculum -d \
+    --replace \
     --network=host \
     --privileged \
     -v /run/udev:/run/udev \
@@ -65,11 +81,24 @@ sudo docker run --name orbuculum -d \
 
 ```bash
 sudo docker run --name orbuculum -d \
+    --replace \
     --network=host \
     --privileged \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
     docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-no-initialize-amd64
+```
+
+### open Euler 22.03 LTS
+
+```bash
+sudo docker run --name orbuculum -d \
+    --replace \
+    --network=host \
+    --privileged \
+    -v /run/udev:/run/udev \
+    -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-openeuler-22.03-lts-no-initialize-amd64
 ```
 
 ### Development

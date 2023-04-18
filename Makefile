@@ -7,6 +7,10 @@ docker-rocky9:
 buildah:
 	cd scripts/container/buildah && bash build-dev.sh
 
+deploy-openeuler:
+	cd scripts/container/buildah && buildah unshare bash -x build-openeular-22.03-lts.sh
+	# cd scripts/container/buildah && bash -x build-centos-7-no-initialize.sh
+
 deploy-rocky8:
 	cd scripts/container/buildah && buildah unshare bash -x build-rockylinux-8.sh
 	cd scripts/container/buildah && bash -x build-rockylinux-8-no-initialize.sh
