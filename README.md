@@ -57,6 +57,7 @@ sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
     -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
