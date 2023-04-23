@@ -20,8 +20,10 @@ function add_s6_overlay() {
     buildah run --network=host $1 -- rm -rf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- sh -c 'cp -rfv /s6-rc.6/* /etc/s6-overlay/s6-rc.d/'
 
-    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-web
     buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum
+    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-web
+    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-pipeline
+    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-web-pipeline
 }
 
 function package_image() {

@@ -8,7 +8,6 @@ source common.sh
 
 container=$(buildah from $BUILD_IMAGE)
 commit_container=$(buildah from $COMMIT_IMAGE)
-
 container_mnt=$(buildah mount $container)
 
 localize_container $container
