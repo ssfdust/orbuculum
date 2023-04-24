@@ -1,0 +1,58 @@
+fn get_last_no_fiber_port_idx(devices) {
+    devices.reverse();
+    let idx = 0;
+
+    for (device, idx) in devices {
+        let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
+        if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+            break;
+        }
+    }
+    return devices.len() - idx - 1;
+}
+
+fn insert_nic_type_ord(device) {
+    let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
+    let type_ord = -1;
+    if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+        type_ord = 10;
+    }
+    else if device.dev_path.contains("platform") {
+        type_ord = 2;
+    }
+    else if device.device_type == "Ethernet" {
+        type_ord = 3;
+    }
+    device["type_ord"] = type_ord;
+    return device;
+}
+
+fn modify_connections(devices, device_type) {
+    let new_devices = [];
+    if device_type == "Ethernet" {
+        for (device, idx) in devices {
+            device["con_name"] = "eth" + idx;
+            new_devices.push(device);
+        }
+        if new_devices.len() > 0 {
+            new_devices[0].ip4info = #{};
+            new_devices[0].ip4info.method = "manual";
+            new_devices[0].ip4info.addresses = ["192.168.100.200/24"];
+            new_devices[0].ip4info.gateway = "192.168.100.1";
+            new_devices[0].ip4info.dns = ["114.114.114.114"];
+        }
+        if new_devices.len() > 1 {
+            let idx = get_last_no_fiber_port_idx(new_devices);
+            new_devices[idx].ip4info = #{};
+            new_devices[idx].ip4info.method = "manual";
+            new_devices[idx].ip4info.addresses = ["172.16.254.1/24"];
+            new_devices[idx].ip4info.gateway = "172.16.254.1";
+            new_devices[idx].ip4info.dns = [];
+            for i in (1..new_devices.len()) {
+                new_devices[i].is_managed = false;
+            }
+        }
+    }
+
+    return new_devices;
+}
