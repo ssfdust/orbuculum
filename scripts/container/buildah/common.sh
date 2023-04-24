@@ -18,21 +18,16 @@ function add_s6_overlay() {
     buildah add $1 https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
     buildah run --network=host $1 -- tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- rm -rf /tmp/s6-overlay-x86_64.tar.xz
-    buildah run --network=host $1 -- sh -c 'cp -rfv /s6-rc.6/* /etc/s6-overlay/s6-rc.d/'
-
-    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum
-    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-web
-    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-pipeline
-    buildah run --network=host $1 -- touch /etc/s6-overlay/s6-rc.d/user/contents.d/orbuculum-web-pipeline
+    buildah run --network=host $1 -- sh -c 'cp -rfv /s6-rc.d/* /etc/s6-overlay/s6-rc.d/'
 }
 
 function package_image() {
     buildah run --network=host $1 -- mkdir /etc/orbuculum
     buildah copy $1 "$2/usr/local/bin/orbuculum"* /usr/bin
     buildah run --network=host -v "${projectdir}:/root/workspace" --workingdir /root/workspace $1 -- cp assets/examples/rules/nic.rules /etc/orbuculum/
-    buildah run $1 -- sh -c 'rm -rf /s6-rc.6 /localize-*'
+    buildah run $1 -- sh -c 'rm -rf /s6-rc.d /localize-*'
 
-    buildah config --entrypoint /init --env RUST_LOG=info $1
+    buildah config --entrypoint /init $1
 }
 
 function localize_container() {
@@ -45,4 +40,3 @@ function cleanup () {
     buildah rm $1
     buildah rm $2
 }
-

@@ -1,8 +1,9 @@
 #!/bin/sh
-BUILD_IMAGE=docker.io/library/rockylinux:8
-COMMIT_IMAGE=docker.io/library/rockylinux:8-minimal
-DISTRIBUTION=rocky8
-IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-amd64
+ROCKY_VERSION=${1:-8}
+BUILD_IMAGE=docker.io/library/rockylinux:$ROCKY_VERSION
+COMMIT_IMAGE=docker.io/library/rockylinux:$ROCKY_VERSION-minimal
+DISTRIBUTION=rocky$ROCKY_VERSION
+IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-$ROCKY_VERSION-amd64-r1
 
 source common.sh
 

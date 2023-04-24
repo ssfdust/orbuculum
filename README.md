@@ -31,10 +31,12 @@ sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-amd64
+    -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-amd64-r1
 ```
 
 #### Rockylinux 9
@@ -44,13 +46,15 @@ sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-amd64
+    -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-amd64-r1
 ```
 
-### Debian 11
+#### Debian 11
 
 ```bash
 sudo docker run --name orbuculum -d \
@@ -58,23 +62,11 @@ sudo docker run --name orbuculum -d \
     --network=host \
     --privileged \
     --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-amd64
-```
-
-### open Euler 22.03 LTS
-
-```bash
-sudo docker run --name orbuculum -d \
-    --replace \
-    --network=host \
-    --privileged \
-    -v /run/udev:/run/udev \
-    -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    -v /path/to/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-openeuler-22.03-lts-amd64
+    -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-amd64-r1
 ```
 
 ### Testing
@@ -86,9 +78,11 @@ sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-no-initialize-amd64
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-no-initialize-amd64-r1
 ```
 
 #### Rockylinux 9
@@ -98,21 +92,25 @@ sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-no-initialize-amd64
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-no-initialize-amd64-r1
 ```
 
-### open Euler 22.03 LTS
+#### Debian 11
 
 ```bash
 sudo docker run --name orbuculum -d \
     --replace \
     --network=host \
     --privileged \
+    --entrypoint /init \
+    -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-openeuler-22.03-lts-no-initialize-amd64
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-no-initialize-amd64-r1
 ```
 
 ### Development
