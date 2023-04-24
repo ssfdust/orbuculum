@@ -1,14 +1,15 @@
 fn get_last_no_fiber_port_idx(devices) {
     devices.reverse();
-    let idx = 0;
+    let no_fiber_idx = 0;
 
     for (device, idx) in devices {
+        no_fiber_idx = idx;
         let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
-        if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+        if !lower_net_link_modes.contains("fibre") && !lower_net_link_modes.contains("fiber") {
             break;
         }
     }
-    return devices.len() - idx - 1;
+    return devices.len() - no_fiber_idx - 1;
 }
 
 fn insert_nic_type_ord(device) {
@@ -37,7 +38,7 @@ fn modify_connections(devices, device_type) {
         if new_devices.len() > 0 {
             new_devices[0].ip4info = #{};
             new_devices[0].ip4info.method = "manual";
-            new_devices[0].ip4info.addresses = ["192.168.100.200/24"];
+            new_devices[0].ip4info.addresses = ["192.168.100.236/24"];
             new_devices[0].ip4info.gateway = "192.168.100.1";
             new_devices[0].ip4info.dns = ["114.114.114.114"];
         }
