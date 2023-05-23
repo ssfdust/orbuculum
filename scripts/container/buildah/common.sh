@@ -27,7 +27,7 @@ function prepare_rust_env() {
 function package_image() {
     buildah run --network=host $1 -- mkdir /etc/orbuculum
     buildah copy $1 "$2/usr/local/bin/orbuculum"* /usr/bin
-    buildah run --network=host -v "${projectdir}:/root/workspace" --workingdir /root/workspace $1 -- cp assets/examples/rules/nic.rules /etc/orbuculum/
+    buildah run --network=host -v "${projectdir}:/root/workspace" --workingdir /root/workspace $1 -- cp assets/examples/rules/prod.rules /etc/orbuculum/default.rules
     buildah run $1 -- sh -c 'rm -rf /s6-rc.d /localize-*'
 
     buildah config --entrypoint /init $1

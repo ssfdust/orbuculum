@@ -1,10 +1,11 @@
 //! The Network view
 use crate::services::nm::{
-    connection_json2info, device_json2info, edit_connection, get_connection, get_devices, update_connection, restart_networking,
+    connection_json2info, device_json2info, edit_connection, get_connection, get_devices,
+    restart_networking, update_connection,
 };
 use crate::utils::{QuestionOnce, QuestionText};
 use eyre::{ContextCompat, Result};
-use requestty::{prompt_one, Question, question};
+use requestty::{prompt_one, question, Question};
 use std::sync::Arc;
 
 pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
@@ -56,8 +57,8 @@ pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
             Ok(()) => {
                 println!("Connection updated");
                 ask_for_restart(grpc_addr.clone()).await?;
-            },
-            _ => println!("Connection updated failed.")
+            }
+            _ => println!("Connection updated failed."),
         }
     }
 

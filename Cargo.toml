@@ -45,6 +45,7 @@ name = "orbuculum-ctl"
 env_logger = { workspace = true }
 futures = { workspace = true }
 hyper = { workspace = true }
+eyre = { workspace = true }
 log = { workspace = true }
 tokio = { workspace = true }
 tower-http = { workspace = true }
@@ -87,3 +88,7 @@ lto = true
 panic = 'abort'
 opt-level = 'z'
 codegen-units = 1
+
+[dev-dependencies]
+rstest.workspace = true
+tempfile = "3.5.0"

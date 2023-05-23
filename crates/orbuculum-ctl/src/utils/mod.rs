@@ -1,5 +1,5 @@
 //! ### Tools module
-use eyre::{Result, bail};
+use eyre::{bail, Result};
 use requestty::{prompt_one, Question};
 pub trait QuestionOnce<T> {
     fn execute(&self) -> Result<&T>;
@@ -53,12 +53,12 @@ pub fn get_left_linenum() -> Result<i32> {
     let term_size = terminal.get(terminal::Value::TerminalSize)?;
     match term_size {
         terminal::Retrieved::TerminalSize(_, trow) => row = trow as i32,
-        _ => bail!("Failed to get terminal size")
+        _ => bail!("Failed to get terminal size"),
     }
     let cursor_pos = terminal.get(terminal::Value::CursorPosition)?;
     match cursor_pos {
         terminal::Retrieved::CursorPosition(_, y) => current_row = y as i32,
-        _ => bail!("Failed to get cursor position")
+        _ => bail!("Failed to get cursor position"),
     }
     let left_rows = row - current_row - 2;
     let page_size = (left_rows / 11) * 11 + 2;

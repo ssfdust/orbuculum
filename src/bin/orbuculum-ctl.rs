@@ -9,7 +9,6 @@ struct Argument {
     grpc_address: String,
 }
 
-
 #[tokio::main]
 async fn main() {
     let args = Argument::from_args();
@@ -17,7 +16,7 @@ async fn main() {
     loop {
         match mainloop(grpc_addr.clone()).await {
             Ok(_) => break,
-            _ => ()
+            _ => (),
         }
     }
 }

@@ -74,7 +74,7 @@ impl Initlizer {
     async fn restart_networking(&self) -> Result<()> {
         println!("Restarting network at startup!");
         match send_command(self.state.clone(), NetworkCommand::SetNetworking(false)).await {
-            _ => ()
+            _ => (),
         }
         send_command(self.state.clone(), NetworkCommand::SetNetworking(true)).await?;
         Ok(())
@@ -108,10 +108,10 @@ impl Initlizer {
                 self.state.clone(),
                 NetworkCommand::Reactive(uuid.to_owned()),
             )
-            .await {
-                _ => eprintln!("Failed to activate {}", uuid)
+            .await
+            {
+                _ => eprintln!("Failed to activate {}", uuid),
             }
-
         }
     }
 
@@ -147,7 +147,10 @@ impl Initlizer {
             if let Some(uuid) = current_uuid.as_str() {
                 let current_name = current_connection["id"].as_str().unwrap_or("");
                 if current_name != conn_name {
-                    println!("uuid: {}, current connection name: {}, new connection name:{}", uuid, current_name, conn_name);
+                    println!(
+                        "uuid: {}, current connection name: {}, new connection name:{}",
+                        uuid, current_name, conn_name
+                    );
                     need_start = true;
                     send_command(
                         self.state.clone(),

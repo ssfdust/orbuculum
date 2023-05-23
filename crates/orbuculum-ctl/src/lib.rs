@@ -5,11 +5,13 @@ use std::sync::Arc;
 
 use eyre::Result;
 use requestty::{ListItem, Question};
+use terminal::{Action, Clear};
 use views::{greeters::greeter, nm::draw_nm_ui};
-use terminal::{Clear, Action};
 
 fn enter_to_continue() {
-    let question = Question::input("enter").message("Please enter to continue").build();
+    let question = Question::input("enter")
+        .message("Please enter to continue")
+        .build();
     requestty::prompt_one(question).unwrap();
 }
 

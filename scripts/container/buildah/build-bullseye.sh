@@ -2,7 +2,7 @@
 BUILD_IMAGE=docker.io/library/debian:bullseye-slim
 COMMIT_IMAGE=docker.io/library/debian:bullseye-slim
 DISTRIBUTION=bullseye
-IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-amd64-r2
+IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav2-debian-11-amd64-r1
 
 source common.sh
 

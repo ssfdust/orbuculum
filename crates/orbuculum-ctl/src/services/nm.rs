@@ -6,9 +6,7 @@
 use std::sync::Arc;
 
 use eyre::{ContextCompat, Result};
-use orbuculum_grpc::{
-    ConnectionBody, ConnectionUuidRequest, NetworkClient
-};
+use orbuculum_grpc::{ConnectionBody, ConnectionUuidRequest, NetworkClient};
 use serde_json::Value;
 
 pub async fn get_devices(grpc_addr: Arc<&str>) -> Result<Vec<Value>> {
@@ -69,7 +67,6 @@ pub async fn get_connection(grpc_addr: Arc<&str>, uuid: String) -> Result<Value>
     Ok(connection)
 }
 
-
 pub async fn update_connection(grpc_addr: Arc<&str>, connection: &Value) -> Result<()> {
     let mut client = NetworkClient::connect(grpc_addr.to_string()).await?;
     let connection_req: ConnectionBody = serde_json::from_value(connection.to_owned()).unwrap();
@@ -115,7 +112,8 @@ pub fn connection_json2info(connection: &Value) -> Result<String> {
 }
 
 pub fn edit_connection<T>(method: &str, ipversion: &str, connection: &Value, func: T) -> Value
-where T: FnOnce(&str) -> (Vec<String>, String, Vec<String>)
+where
+    T: FnOnce(&str) -> (Vec<String>, String, Vec<String>),
 {
     let mut new_connection = connection.clone();
     if ipversion == "IPv4" {
