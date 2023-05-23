@@ -13,6 +13,7 @@ container_mnt=$(buildah mount $container)
 localize_container $container
 buildah run --network=host $container -- apt install -y curl build-essential git libudev-dev libnm-dev libsystemd-dev protobuf-compiler
 
+prepare_rust_env $container
 build_package $container
 
 localize_container $commit_container

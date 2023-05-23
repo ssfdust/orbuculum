@@ -15,6 +15,7 @@ container_mnt=$(buildah mount $container)
 localize_container $container
 buildah run --network=host $container -- dnf install -y NetworkManager-libnm-devel systemd-devel git protobuf-devel gcc llvm jq
 
+prepare_rust_env $container
 build_package $container
 
 localize_container $commit_container

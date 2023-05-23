@@ -4,9 +4,6 @@ S6_OVERLAY_VERSION=3.1.4.2
 projectdir="$(cd `pwd`;cd ../../..;pwd)"
 
 function build_package() {
-    buildah run --network=host $1 -- bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y"
-    buildah run --network=host $1 -- cp /localize-$DISTRIBUTION/config /root/.cargo/config
-    buildah config --env PATH=/root/.cargo/bin:$PATH $1
     buildah run --network=host -v "${projectdir}:/root/workspace" --workingdir /root/workspace $1 -- cargo clean
     buildah run --network=host -v "${projectdir}:/root/workspace" --workingdir /root/workspace $1 -- cargo install --path . --root /usr/local
 }
@@ -19,6 +16,12 @@ function add_s6_overlay() {
     buildah run --network=host $1 -- tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- rm -rf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- sh -c 'cp -rfv /s6-rc.d/* /etc/s6-overlay/s6-rc.d/'
+}
+
+function prepare_rust_env() {
+    buildah run --network=host $1 -- bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain nightly -y"
+    buildah run --network=host $1 -- cp /localize-$DISTRIBUTION/config /root/.cargo/config
+    buildah config --env PATH=/root/.cargo/bin:$PATH $1
 }
 
 function package_image() {
