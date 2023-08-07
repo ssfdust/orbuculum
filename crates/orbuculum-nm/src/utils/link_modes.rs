@@ -5,6 +5,7 @@ use ethtool::{
     EthtoolHeader::DevName,
     EthtoolLinkModeAttr::{Header, Ours},
 };
+use ethernet_info::get_ethernet_info;
 use eyre::Result;
 use futures::stream::TryStreamExt;
 use serde_json::Value;
@@ -12,7 +13,7 @@ use tokio::spawn;
 
 /// Gather all network cards' link modes and convert them into serde_json::Value
 /// Stolen codes from rust-netlink link_modes example
-pub async fn gather_link_modes(iface_name: Option<&str>) -> Result<Value> {
+async fn gather_link_modes_nl(iface_name: Option<&str>) -> Result<Value> {
     let mut nic_linkmodes: Value = serde_json::from_str("{}")?;
     let (connection, mut handle, _) = new_connection()?;
     spawn(connection);
@@ -47,6 +48,30 @@ pub async fn gather_link_modes(iface_name: Option<&str>) -> Result<Value> {
         }
     }
     Ok(nic_linkmodes)
+}
+
+fn gather_link_modes_ioctl(iface_name: Option<&str>) -> Result<Value> {
+    let mut nic_linkmodes: Value = serde_json::from_str("{}")?;
+    let interfaces_eth_info = get_ethernet_info(iface_name);
+    for interface_info in interfaces_eth_info {
+        let iface_name = interface_info.name();
+        let mut supported = interface_info
+            .supported()
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        supported.extend(interface_info.ports().iter().map(|p| p.to_string()));
+        nic_linkmodes[iface_name] = serde_json::to_value(supported)?;
+    }
+    Ok(nic_linkmodes)
+}
+
+pub async fn gather_link_modes(iface_name: Option<&str>) -> Result<Value> {
+    let link_modes = gather_link_modes_nl(iface_name).await;
+    match link_modes {
+        Ok(_) => link_modes,
+        _ => gather_link_modes_ioctl(iface_name)
+    }
 }
 
 #[cfg(test)]

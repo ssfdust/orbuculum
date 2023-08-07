@@ -7,7 +7,7 @@ jobs:
       matrix:
         config:
           - os: ubuntu-20.04
-            container: buildah-rocky9
+            container: buildah-rocky8
           - os: ubuntu-20.04
             container: docker-rocky9
           - os: ubuntu-20.04
@@ -22,11 +22,11 @@ jobs:
         docker run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
       shell: bash
 
-    - name: Run buildah for rockylinux 9
-      if: "contains( matrix.config.container, 'buildah-rocky9')"
+    - name: Run buildah for rockylinux 8
+      if: "contains( matrix.config.container, 'buildah-rocky8')"
       run: |
         make buildah
-        podman run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:latest cargo build
+        podman run --network=host --rm -v "$(pwd):/work" --workdir /work docker.io/ssfdust/orbuculum-dev:rocky8 cargo build
       shell: bash
 
     - name: Run docker for rockylinux 9

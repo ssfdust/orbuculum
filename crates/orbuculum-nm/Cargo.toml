@@ -32,6 +32,7 @@ ipnet = "2.7.0"
 libc = "0.2.139"
 regex = "1.7.1"
 ethtool = "0.2.4"
+ethernet-info = "0.0.2"
 
 [features]
 v1_2 = ['nm/v1_2']

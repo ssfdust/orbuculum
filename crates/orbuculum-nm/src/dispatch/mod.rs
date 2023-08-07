@@ -37,12 +37,13 @@ use nm::Client;
 use serde_json::Value;
 use std::future::Future;
 use std::sync::Arc;
+use glib::ControlFlow;
 
 /// Define the dispatch routers
 pub fn dispatch_command_requests(
     command_request: NetworkRequest,
     link_modes: Arc<Value>,
-) -> glib::Continue {
+) -> ControlFlow {
     let NetworkRequest { responder, command } = command_request;
     match command {
         NetworkCommand::ListDeivces => spawn(list_ether_devices(link_modes), responder),
@@ -67,7 +68,7 @@ pub fn dispatch_command_requests(
             spawn(set_manage(device_name, is_managed), responder)
         }
     };
-    glib::Continue(true)
+    ControlFlow::Continue
 }
 
 /// Wrap the glib
