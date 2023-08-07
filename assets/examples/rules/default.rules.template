@@ -41,16 +41,16 @@ fn modify_connections(devices, device_type) {
         if new_devices.len() > 0 {
             new_devices[0].ip4info = #{};
             new_devices[0].ip4info.method = "manual";
-            new_devices[0].ip4info.addresses = ["192.168.100.236/24"];
-            new_devices[0].ip4info.gateway = "192.168.100.1";
-            new_devices[0].ip4info.dns = ["114.114.114.114"];
+            new_devices[0].ip4info.addresses = ["SERVICE_IF_IPADDR"];
+            new_devices[0].ip4info.gateway = "SERVICE_IF_GATEWAY";
+            new_devices[0].ip4info.dns = ["SERVICE_IF_DNS"];
         }
         if new_devices.len() > 1 {
             let idx = get_last_no_fiber_port_idx(new_devices);
             new_devices[idx].ip4info = #{};
             new_devices[idx].ip4info.method = "manual";
-            new_devices[idx].ip4info.addresses = ["172.16.254.1/24"];
-            new_devices[idx].ip4info.gateway = "172.16.254.1";
+            new_devices[idx].ip4info.addresses = ["MONITOR_IF_IPADDR"];
+            new_devices[idx].ip4info.gateway = "MONITOR_IF_GATEWAY";
             new_devices[idx].ip4info.dns = [];
             for i in (1..new_devices.len()) {
                 new_devices[i].is_managed = false;
