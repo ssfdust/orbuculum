@@ -1,10 +1,40 @@
 Orbuculum
--------------------
+===================
 
 A system manager written in rust.
 
+Network
+-------------------
+### Persistent Network Configuration
+
+It solves the problem of mismatched configuraions because of hotplugging network
+cards. For example, you have four network cards, which are eth0, eth1, eth2, eth3
+Assuming there are four network cards, eth0, eth1, eth2, and eth3. and there are
+two unused ethernet slots on the motherboard located in the front. If you insert
+a new network card, the original eth0 card may become eth1. However, the
+configuration of the previously designated eth0 card remains unchanged.
+
+The network module resolves this issue by adapting to systemd's predictable
+network interface names or by binding to MAC addresses, default to network
+interface names.
+
+#### Example for binding to mac address
+```rhai
+fn modify_connections(devices, device_type) {
+    let new_devices = [];
+    if device_type == "Ethernet" {
+        for (device, idx) in devices {
+            device["name"] = device["mac"];
+            new_devices.push(device);
+        }
+    }
+
+    return new_devices;
+}
+```
+
 Development
-===================
+-------------------
 Vagrant
 -------------------
 
