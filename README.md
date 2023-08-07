@@ -3,6 +3,10 @@ Orbuculum
 
 A system manager written in rust.
 
+Prepare
+-------------------
+**Download assets/examples/rules/prod.rules to /etc/orbuculum/default.rules**
+
 Network
 -------------------
 ### Persistent Network Configuration
