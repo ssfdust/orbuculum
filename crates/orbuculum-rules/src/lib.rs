@@ -162,8 +162,8 @@ fn trim_device_value(device: &Value) -> Value {
 pub fn sort_devices<'a>(nicrule_file: &'a str, devices: &'a Value) -> Option<Vec<Value>> {
     let mut devices_arr = insert_nic_ord_types(&nicrule_file, devices).unwrap();
     devices_arr.sort_by(|device_a, device_b| {
-        let device_ord_type_a = device_a["type_ord"].as_i64().unwrap();
-        let device_ord_type_b = device_b["type_ord"].as_i64().unwrap();
+        let device_ord_type_a = device_a["type_ord"].as_i64().unwrap_or(-99);
+        let device_ord_type_b = device_b["type_ord"].as_i64().unwrap_or(-99);
         if device_ord_type_a != device_ord_type_b {
             device_ord_type_a.cmp(&device_ord_type_b)
         } else {

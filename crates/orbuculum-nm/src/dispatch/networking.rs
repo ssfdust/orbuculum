@@ -7,7 +7,7 @@
 use super::create_client;
 use crate::NetworkResponse;
 use eyre::Result;
-use nm::{DBUS_INTERFACE, DBUS_PATH};
+// use nm::{DBUS_INTERFACE, DBUS_PATH};
 use serde_json::json;
 
 /// When disabled, all interfaces that NM manages are deactivated.
@@ -17,16 +17,17 @@ pub async fn set_networking(state: bool) -> Result<NetworkResponse> {
     let networking_status = glib::Variant::tuple_from_iter(vec![glib::Variant::from(state)]);
     let current_status = client.is_networking_enabled();
     if current_status != state {
-        client
-            .dbus_call_future(
-                DBUS_PATH.as_str(),
-                DBUS_INTERFACE.as_str(),
-                "Enable",
-                Some(&networking_status),
-                None,
-                2000,
-            )
-            .await?;
+        client.set_networking_enabled(state);
+        // client
+        //     .dbus_call_future(
+        //         DBUS_PATH.as_str(),
+        //         DBUS_INTERFACE.as_str(),
+        //         "Enable",
+        //         Some(&networking_status),
+        //         None,
+        //         2000,
+        //     )
+        //     .await?;
     }
     Ok(NetworkResponse::Success)
 }

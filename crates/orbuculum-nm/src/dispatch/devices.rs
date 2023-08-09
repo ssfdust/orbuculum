@@ -3,7 +3,7 @@
 //! The module is used to provide the api about network devices for
 //! the NetworkManager.
 use super::{create_client, NetworkResponse};
-use crate::net::NetInfo;
+use crate::{net::NetInfo, utils::get_dev_id_path};
 use crate::utils::nm_display;
 use eyre::Result;
 use nm::{ActiveConnectionExt, ConnectionExt, Device};
@@ -138,7 +138,8 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
                         .map(|x| NetInfo::try_from(x).and_then(|x| Ok(x)).ok())
                         .unwrap_or(None);
                     let dev_path = device.udi().map(|x| x.to_string());
-                    let id_path = device.path().map(|x| x.to_string());
+                    let dev_path_str = dev_path.as_ref().map(|x| x.as_str());
+                    let id_path = get_dev_id_path(dev_path_str);
                     let driver = device.driver().map(|x| x.to_string());
                     let net_link_modes: Vec<String> = link_modes[interface.to_string()]
                         .as_array()
@@ -183,25 +184,26 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
 /// set the target device to be unmanaged status. e.g dpdk, or some network
 /// traffic trace softwares.
 pub async fn set_manage(device_name: String, is_managed: bool) -> Result<NetworkResponse> {
-    use nm::traits::ObjectExt;
+    use nm::DeviceExt;
     let client = create_client().await?;
-    let device_interface = format!("{}.Device", nm::DBUS_INTERFACE);
+    // let device_interface = format!("{}.Device", nm::DBUS_INTERFACE);
     if let Some(device) = client.device_by_iface(&device_name) {
-        if let Some(device_object_path) = device.path().map(|x| x.to_string()) {
-            let managed_status = glib::Variant::from(is_managed);
-            let current_status = get_managed_status(&device);
-            if current_status != is_managed {
-                client
-                    .dbus_set_property_future(
-                        &device_object_path,
-                        &device_interface,
-                        "Managed",
-                        &managed_status,
-                        2000,
-                    )
-                    .await?;
-            }
-        }
+        device.set_managed(is_managed);
+        // if let Some(device_object_path) = device.path().map(|x| x.to_string()) {
+        //     let managed_status = glib::Variant::from(is_managed);
+        //     let current_status = get_managed_status(&device);
+        //     if current_status != is_managed {
+        //         client
+        //             .dbus_set_property_future(
+        //                 &device_object_path,
+        //                 &device_interface,
+        //                 "Managed",
+        //                 &managed_status,
+        //                 2000,
+        //             )
+        //             .await?;
+        //     }
+        // }
     } else {
         bail!("The given network device is not found.")
     }
