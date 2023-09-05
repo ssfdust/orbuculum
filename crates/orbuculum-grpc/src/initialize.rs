@@ -36,6 +36,7 @@ fn get_ip_config(config: &Value, key: &str) -> Result<Value> {
     let gateway = config[key]["gateway"]
         .as_str()
         .map(|x| x.to_string())
+        .and_then(|y| if y.is_empty() { None } else { Some(y) })
         .wrap_err("Failed get gateway")?;
     let method = config[key]["method"]
         .as_str()

@@ -146,7 +146,7 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
     }
     connection.add_setting(s_connection);
 
-    match future_with_timeout(std::time::Duration::from_millis(600), async {
+    match future_with_timeout(std::time::Duration::from_millis(1000), async {
         client.add_connection_future(&connection, true).await
     })
     .await
@@ -154,7 +154,13 @@ pub async fn create_wired_connection(conn_name: String, device: String) -> Resul
         Ok(Ok(connection)) => {
             uuid = connection.uuid().map(|x| x.to_string()).unwrap_or(uuid);
         }
-        _ => eprintln!("add connection {} timeout", conn_name),
+        _ => {
+            eprintln!("add connection {} timeout", conn_name);
+            let client = create_client().await?;
+            uuid = client.connection_by_id(&conn_name).and_then(|x| {
+                Some(x.uuid().map(|x| x.to_string()).unwrap_or_default())
+            }).unwrap_or_default();
+        }
     }
 
     Ok(NetworkResponse::Return(
