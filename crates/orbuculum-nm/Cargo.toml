@@ -32,7 +32,7 @@ ipnet = "2.7.0"
 libc = "0.2.139"
 regex = "1.7.1"
 ethtool = "0.2.4"
-ethernet-info = "0.0.2"
+ethernet-info = "0.0.3"
 udev = "0.7.0"
 
 [features]
