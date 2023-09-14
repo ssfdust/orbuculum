@@ -12,17 +12,49 @@ fn get_last_no_fiber_port_idx(devices) {
     return devices.len() - no_fiber_idx - 1;
 }
 
+fn reverse_by_key(arr, key, val) {
+    let arr_filter_idx = [];
+    let arr_filter = arr.filter(|x| x[key] == val);
+    let idx = 0;
+
+    for ele in arr_filter {
+        arr_filter_idx.push(arr.index_of(ele));
+    }
+    arr_filter.reverse();
+
+    for (arr_idx, filter_idx) in arr_filter_idx {
+        arr[arr_idx] = arr_filter[filter_idx];
+    }
+    return arr;
+}
+
+fn fuzzy_contains(arr, val) {
+    for (item, idx) in arr {
+        if item.contains(val) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn is_fiber(lower_net_link_modes) {
+    return lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber");
+}
+
 fn insert_nic_type_ord(device) {
     let lower_net_link_modes = device.net_link_modes.map(|x| x.to_lower());
     let type_ord = -1;
-    if lower_net_link_modes.contains("tp") || device.driver == "ixgbe" {
+    if device.dev_path.contains("platform") {
+        type_ord = 2;
+    }
+    else if lower_net_link_modes.contains("tp") && device.driver == "ixgbe" {
         type_ord = 9;
     }
-    if lower_net_link_modes.contains("fibre") || lower_net_link_modes.contains("fiber") {
+    else if is_fiber(lower_net_link_modes) && fuzzy_contains(lower_net_link_modes, "1000base") {
         type_ord = 10;
     }
-    else if device.dev_path.contains("platform") {
-        type_ord = 2;
+    else if is_fiber(lower_net_link_modes) && fuzzy_contains(lower_net_link_modes, "10000base") {
+        type_ord = 11;
     }
     else if device.device_type == "Ethernet" {
         type_ord = 3;
@@ -34,6 +66,7 @@ fn insert_nic_type_ord(device) {
 fn modify_connections(devices, device_type) {
     let new_devices = [];
     if device_type == "Ethernet" {
+        let devices = reverse_by_key(devices, "type_ord", 11);
         for (device, idx) in devices {
             device["con_name"] = "eth" + idx;
             new_devices.push(device);
@@ -41,20 +74,17 @@ fn modify_connections(devices, device_type) {
         if new_devices.len() > 0 {
             new_devices[0].ip4info = #{};
             new_devices[0].ip4info.method = "manual";
-            new_devices[0].ip4info.addresses = ["SERVICE_IF_IPADDR"];
-            new_devices[0].ip4info.gateway = "SERVICE_IF_GATEWAY";
-            new_devices[0].ip4info.dns = ["SERVICE_IF_DNS"];
+            new_devices[0].ip4info.addresses = ["192.168.1.100/24"];
+            new_devices[0].ip4info.gateway = "192.168.1.1";
+            new_devices[0].ip4info.dns = ["114.114.114.114"];
         }
         if new_devices.len() > 1 {
             let idx = get_last_no_fiber_port_idx(new_devices);
             new_devices[idx].ip4info = #{};
             new_devices[idx].ip4info.method = "manual";
-            new_devices[idx].ip4info.addresses = ["MONITOR_IF_IPADDR"];
-            new_devices[idx].ip4info.gateway = "MONITOR_IF_GATEWAY";
+            new_devices[idx].ip4info.addresses = ["172.16.254.1/24"];
+            new_devices[idx].ip4info.gateway = "";
             new_devices[idx].ip4info.dns = [];
-            for i in (1..new_devices.len()) {
-                new_devices[i].is_managed = false;
-            }
         }
     }
 
