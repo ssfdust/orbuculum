@@ -22,6 +22,7 @@ impl Network for NetworkService {
             .await
             .and_then(|x| {
                 if let Some(devices) = x.into_value() {
+                    dbg!(devices.clone());
                     let data = serde_json::from_value(devices).unwrap();
                     Ok(Response::new(DevicesReply {
                         code: 0,

@@ -32,12 +32,12 @@ use connections::{
 };
 use devices::{list_ether_devices, set_manage};
 use eyre::{Result, WrapErr};
+use glib::ControlFlow;
 use glib::MainContext;
 use nm::Client;
 use serde_json::Value;
 use std::future::Future;
 use std::sync::Arc;
-use glib::ControlFlow;
 
 /// Define the dispatch routers
 pub fn dispatch_command_requests(

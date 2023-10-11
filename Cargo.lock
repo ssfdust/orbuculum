@@ -399,9 +399,9 @@ dependencies = [
 
 [[package]]
 name = "ethernet-info"
-version = "0.0.2"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cb1f139dd26cd5c0a6eaac34853cb8102bcf1ddc9fb7d26f39d541ec79a4908e"
+checksum = "1821e033d2144b47adf8ea973726219b00706b1b0f7b33b7f4366d6b6042bb45"
 dependencies = [
  "enum-iterator",
  "libc",

@@ -3,8 +3,8 @@
 //! The module is used to provide the api about network devices for
 //! the NetworkManager.
 use super::{create_client, NetworkResponse};
-use crate::{net::NetInfo, utils::get_dev_id_path};
 use crate::utils::nm_display;
+use crate::{net::NetInfo, utils::get_dev_id_path};
 use eyre::Result;
 use nm::{ActiveConnectionExt, ConnectionExt, Device};
 use serde::Serialize;
@@ -79,7 +79,7 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
     use nm::DeviceExt;
     let client = create_client().await?;
 
-    let devices: Vec<NetDevice> = client
+    let mut devices: Vec<NetDevice> = client
         .devices()
         .into_iter()
         .map(|device| {
@@ -174,6 +174,10 @@ pub async fn list_ether_devices(link_modes: Arc<serde_json::Value>) -> Result<Ne
         })
         .collect();
 
+    devices = devices
+        .into_iter()
+        .filter_map(|x| if x.dev_path.is_some() { Some(x) } else { None })
+        .collect();
     let value = serde_json::to_value(devices)?;
     Ok(NetworkResponse::Return(value))
 }

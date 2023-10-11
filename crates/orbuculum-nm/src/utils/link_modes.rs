@@ -1,11 +1,11 @@
 //! The module provides functions that gather network cards link modes.
+use ethernet_info::get_ethernet_info;
 use ethtool::{
     new_connection,
     EthtoolAttr::LinkMode,
     EthtoolHeader::DevName,
     EthtoolLinkModeAttr::{Header, Ours},
 };
-use ethernet_info::get_ethernet_info;
 use eyre::Result;
 use futures::stream::TryStreamExt;
 use serde_json::Value;
@@ -70,7 +70,7 @@ pub async fn gather_link_modes(iface_name: Option<&str>) -> Result<Value> {
     let link_modes = gather_link_modes_nl(iface_name).await;
     match link_modes {
         Ok(_) => link_modes,
-        _ => gather_link_modes_ioctl(iface_name)
+        _ => gather_link_modes_ioctl(iface_name),
     }
 }
 
