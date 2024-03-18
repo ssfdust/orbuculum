@@ -9,10 +9,10 @@ function build_package() {
 }
 
 function add_s6_overlay() {
-    buildah add $1 https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
+    buildah copy $1 https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz /tmp
     buildah run --network=host $1 -- tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz
     buildah run --network=host $1 -- rm -rf /tmp/s6-overlay-noarch.tar.xz
-    buildah add $1 https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
+    buildah copy $1 https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz /tmp
     buildah run --network=host $1 -- tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- rm -rf /tmp/s6-overlay-x86_64.tar.xz
     buildah run --network=host $1 -- sh -c 'cp -rfv /s6-rc.d/* /etc/s6-overlay/s6-rc.d/'

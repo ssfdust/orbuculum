@@ -2,7 +2,7 @@
 BUILD_IMAGE=docker.io/library/debian:buster-slim
 COMMIT_IMAGE=docker.io/library/debian:buster-slim
 DISTRIBUTION=buster
-IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav2-debian-10-amd64-r1
+IMAGE_NAME=docker.io/ssfdust/orbuculum:v0.0.1-alphav3-debian-10-amd64-r1
 
 source common.sh
 

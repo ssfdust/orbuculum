@@ -20,9 +20,9 @@ deploy-no-initialize:
 	cd scripts/container/buildah && buildah unshare bash -x build-no-initialize.sh
 
 upload-images:
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-debian-11-amd64-r1
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-rockylinux-8-amd64-r1
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-rockylinux-9-amd64-r1
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-debian-11-no-initialize-amd64-r1
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-rockylinux-8-no-initialize-amd64-r1
-	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav2-rockylinux-9-no-initialize-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-debian-11-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-8-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-9-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-debian-11-no-initialize-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-8-no-initialize-amd64-r1
+	podman push docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-9-no-initialize-amd64-r1

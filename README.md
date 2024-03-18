@@ -70,7 +70,7 @@ sudo docker run --name orbuculum -d \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
     -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-8-amd64-r1
 ```
 
 #### Rockylinux 9
@@ -85,7 +85,7 @@ sudo docker run --name orbuculum -d \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
     -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-9-amd64-r1
 ```
 
 #### Debian 11
@@ -100,7 +100,7 @@ sudo docker run --name orbuculum -d \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
     -v /etc/orbuculum/nic.rules:/etc/orbuculum/nic.rules:ro \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-debian-11-amd64-r1
 ```
 
 ### Testing
@@ -116,7 +116,7 @@ sudo docker run --name orbuculum -d \
     -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-8-no-initialize-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-8-no-initialize-amd64-r1
 ```
 
 #### Rockylinux 9
@@ -130,7 +130,7 @@ sudo docker run --name orbuculum -d \
     -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-rockylinux-9-no-initialize-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-rockylinux-9-no-initialize-amd64-r1
 ```
 
 #### Debian 11
@@ -144,7 +144,7 @@ sudo docker run --name orbuculum -d \
     -v /var/log:/var/log \
     -v /run/udev:/run/udev \
     -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket \
-    docker.io/ssfdust/orbuculum:v0.0.1-alphav1-debian-11-no-initialize-amd64-r1
+    docker.io/ssfdust/orbuculum:v0.0.1-alphav3-debian-11-no-initialize-amd64-r1
 ```
 
 ### Development
