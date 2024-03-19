@@ -1,18 +1,29 @@
 //! The Network view
 use crate::services::nm::{
-    connection_json2info, device_json2info, edit_connection, get_connection, get_devices,
-    restart_networking, update_connection,
+    connection_json2info, edit_connection, get_connection, get_devices, restart_connection, update_connection
 };
 use crate::utils::{QuestionOnce, QuestionText};
 use eyre::{ContextCompat, Result};
-use requestty::{prompt_one, question, Question};
+use requestty::{prompt_one, Question};
 use std::sync::Arc;
+use log::info;
 
 pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
     let devices = get_devices(grpc_addr.clone()).await?;
+    let devices: Vec<serde_json::Value> = devices.into_iter().filter_map(|x| {
+        if x["connection"]["id"].is_null() {
+            return None;
+        }
+        if x["virtual"].as_bool().unwrap_or(false) {
+            return None;
+        }
+        serde_json::to_value(x).ok()
+    }).collect();
     let devices_info: Vec<String> = devices
         .iter()
-        .filter_map(|device| device_json2info(device).ok())
+        .filter_map(|device| {
+            device["connection"]["id"].as_str().map(|x| x.to_string())
+        })
         .collect();
     let choices = devices_info.into_iter().map(|x| x.into()).collect();
     let once_question = QuestionText::new(
@@ -23,10 +34,10 @@ pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
     );
     let device = once_question.execute()?;
 
-    let device_uuid = device["connection"]["uuid"]
+    let conn_uuid = device["connection"]["uuid"]
         .as_str()
         .wrap_err("The connection doesn't exist.")?;
-    let connection = get_connection(grpc_addr.clone(), device_uuid.to_string()).await?;
+    let connection = get_connection(grpc_addr.clone(), conn_uuid.to_string()).await?;
     let connection_string = connection_json2info(&connection)?;
     println!("{}", connection_string);
     let question = Question::confirm("edit")
@@ -56,23 +67,28 @@ pub async fn draw_nm_ui(grpc_addr: Arc<&str>) -> Result<()> {
         match update_connection(grpc_addr.clone(), &new_connection).await {
             Ok(()) => {
                 println!("Connection updated");
-                ask_for_restart(grpc_addr.clone()).await?;
+                ask_for_restart(grpc_addr.clone(), conn_uuid).await?;
             }
-            _ => println!("Connection updated failed."),
+            _ => {
+                println!("Connection updated failed");
+                println!("Please check the connection information");
+                println!("Attention: the format of the address must be");
+                println!("in the form of addr/prefix, e.g. 10.0.23.43/24");
+            }
         }
     }
 
     Ok(())
 }
 
-async fn ask_for_restart(grpc_addr: Arc<&str>) -> Result<()> {
+async fn ask_for_restart(grpc_addr: Arc<&str>, uuid: &str) -> Result<()> {
     let question = Question::confirm("restart")
-        .message("Do you want to restart network now?")
+        .message("Do you want to restart the connection now?")
         .build();
     let answer = prompt_one(question)?;
     let if_restart = answer.as_bool().unwrap_or(false);
     if if_restart {
-        restart_networking(grpc_addr).await?;
+        restart_connection(grpc_addr, uuid.to_string()).await?;
     }
     Ok(())
 }

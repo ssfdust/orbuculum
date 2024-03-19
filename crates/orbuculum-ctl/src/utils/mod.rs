@@ -42,13 +42,13 @@ impl<'a, U> QuestionOnce<U> for QuestionText<'a, U> {
             .and_then(|item| Some(item.index))
             .unwrap();
         let choice = self.items.get(index).unwrap();
-        Ok(choice.clone())
+        Ok(choice)
     }
 }
 
 pub fn get_left_linenum() -> Result<i32> {
-    let mut row = -1;
-    let mut current_row = -1;
+    let row;
+    let current_row;
     let terminal = terminal::stdout();
     let term_size = terminal.get(terminal::Value::TerminalSize)?;
     match term_size {

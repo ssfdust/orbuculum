@@ -39,7 +39,7 @@ Vagrant.configure("2") do |config|
     # 使用系统接口
     libvirt.uri = "qemu:///system"
     # 默认网络修改
-    libvirt.management_network_name = "vagrant-virbr2"
+    libvirt.management_network_name = "vagrant-trusted"
     # 阻止自定义网络被删除
     libvirt.management_network_keep = false
     # libvirt.memorybacking :access, :mode => "shared"

@@ -67,7 +67,10 @@ fn lookup_config_path(config_dir: PathBuf, dmi_dir: &Path) -> Result<String> {
     }
 
     // If no matching file was found, return the default.nic file
-    Ok(config_dir.join("default.rules").to_string_lossy().to_string())
+    Ok(config_dir
+        .join("default.rules")
+        .to_string_lossy()
+        .to_string())
 }
 
 #[tokio::main]
@@ -85,11 +88,9 @@ async fn main() {
 
     let shared_state = Arc::new(State::new(glib_sender));
 
-    let config_path = lookup_config_path(args.config_dir, &PathBuf::from(SYS_DMI_DIR)).unwrap();
-
     if !args.no_initialize {
-        initialize_network_manager(shared_state.clone(), config_path)
-            .await;
+        let config_path = lookup_config_path(args.config_dir, &PathBuf::from(SYS_DMI_DIR)).unwrap();
+        initialize_network_manager(shared_state.clone(), config_path).await;
     }
     create_server(shared_state, args.bind_address)
         .await
@@ -104,9 +105,17 @@ mod tests {
     use tempfile::tempdir;
 
     #[rstest]
-    #[case("Product Name", "Product Version", "config/product_name-product_version.rules")]
+    #[case(
+        "Product Name",
+        "Product Version",
+        "config/product_name-product_version.rules"
+    )]
     #[case("ProductName", "", "config/productname.rules")]
-    #[case("ProductName", "Product Version", "config/productname-product_version.rules")]
+    #[case(
+        "ProductName",
+        "Product Version",
+        "config/productname-product_version.rules"
+    )]
     #[case("", "NonExistent", "config/default.rules")]
     fn test_lookup_config_path(
         #[case] product_name: &str,

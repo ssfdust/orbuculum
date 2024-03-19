@@ -17,42 +17,11 @@ pub async fn get_devices(grpc_addr: Arc<&str>) -> Result<Vec<Value>> {
         .into_inner()
         .data
         .into_iter()
-        .map(|x| serde_json::to_value(x).unwrap())
+        .filter_map(|x| {
+            serde_json::to_value(x).ok()
+        })
         .collect();
     Ok(devices)
-}
-
-/// Printable device info
-pub fn device_json2info(device: &Value) -> Result<String> {
-    let ipv4_addresses: Vec<String> =
-        serde_json::from_value(device["ip4info"]["addresses"].clone())?;
-    let ipv4_dns: Vec<String> = serde_json::from_value(device["ip4info"]["dns"].clone())?;
-    let ipv6_addresses: Vec<String> =
-        serde_json::from_value(device["ip6info"]["addresses"].clone())?;
-    let ipv6_dns: Vec<String> = serde_json::from_value(device["ip6info"]["dns"].clone())?;
-    let info = format!(
-        "Interface: {}\n\
-        Pci: {}\n\
-        \n\
-        IPv4:\n\
-        Addresses: {}\n\
-        Gateway: {}\n\
-        DNS: {}\n\
-        \n\
-        IPv6:\n\
-        Addresses: {}\n\
-        Gateway: {}\n\
-        DNS: {}\n",
-        device["connection"]["id"].as_str().unwrap_or(""),
-        device["product_name"].as_str().unwrap_or(""),
-        ipv4_addresses.join(","),
-        device["ip4info"]["gateway"].as_str().unwrap_or(""),
-        ipv4_dns.join(","),
-        ipv6_addresses.join(","),
-        device["ip6info"]["gateway"].as_str().unwrap_or(""),
-        ipv6_dns.join(","),
-    );
-    Ok(info)
 }
 
 pub async fn get_connection(grpc_addr: Arc<&str>, uuid: String) -> Result<Value> {
@@ -146,9 +115,9 @@ where
     new_connection
 }
 
-pub async fn restart_networking(grpc_addr: Arc<&str>) -> Result<()> {
+pub async fn restart_connection(grpc_addr: Arc<&str>, uuid: String) -> Result<()> {
     let mut client = NetworkClient::connect(grpc_addr.to_string()).await?;
-    let request = tonic::Request::new(().into());
-    client.restart_networking(request).await?;
+    let request = tonic::Request::new(ConnectionUuidRequest { uuid });
+    client.reactive_connection(request).await?;
     Ok(())
 }

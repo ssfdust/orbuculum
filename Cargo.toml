@@ -7,8 +7,8 @@ edition = "2021"
 members = ["crates/*"]
 
 [workspace.dependencies]
-glib = { git = "https://github.com/gtk-rs/gtk-rs-core", version = "0.19.0" }
-nm = { git = "https://github.com/balena-io-modules/libnm-rs.git", version = "0.4.0" }
+glib = { git = "https://github.com/gtk-rs/gtk-rs-core", rev = "cab7e1c549675cbe98af461ebbcc04c33c8f1295" }
+nm = { git = "https://github.com/imgurbot12/libnm-rs" }
 eyre = "0.6.8"
 tokio = { version = "1.23.0", features = ["full"] }
 serde_json = "1.0.93"
